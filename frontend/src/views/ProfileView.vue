@@ -1,29 +1,63 @@
 <template>
-  <div class="max-w-md mx-auto">
-    <h1 class="text-2xl font-bold mb-6">プロフィール設定</h1>
+  <div class="max-w-2xl mx-auto border-x border-gray-800 min-h-screen">
+    <!-- プロフィールヘッダー -->
+    <div class="relative">
+      <div class="h-48 bg-gradient-to-r from-blue-900 to-blue-800"></div>
+      <div class="absolute -bottom-16 left-4">
+        <div class="w-32 h-32 rounded-full bg-gray-700 border-4 border-black flex items-center justify-center overflow-hidden">
+          <i class="fas fa-user text-4xl text-gray-400"></i>
+        </div>
+      </div>
+    </div>
     
-    <form @submit.prevent="updateProfile" class="space-y-4">
-      <div>
-        <label class="block text-sm font-medium text-gray-700">ニックネーム</label>
-        <input
-          v-model="nickname"
-          type="text"
-          class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-          required
-        />
+    <!-- プロフィール情報 -->
+    <div class="px-4 pt-20 pb-4 border-b border-gray-800">
+      <div class="flex justify-between items-start">
+        <div>
+          <h1 class="text-2xl font-bold">{{ authStore.user?.nickname || authStore.user?.id }}</h1>
+          <p class="text-gray-500">@{{ authStore.user?.id }}</p>
+        </div>
+        <button class="btn-secondary">
+          プロフィールを編集
+        </button>
       </div>
-
-      <div v-if="message" class="text-green-600">
-        {{ message }}
+      
+      <div class="mt-4 flex space-x-6 text-gray-500">
+        <div class="flex items-center space-x-1">
+          <i class="fas fa-calendar"></i>
+          <span>2025年2月から利用</span>
+        </div>
       </div>
+    </div>
 
-      <button
-        type="submit"
-        class="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
-      >
-        更新
-      </button>
-    </form>
+    <!-- プロフィール編集フォーム -->
+    <div class="p-4">
+      <div class="max-w-md">
+        <h2 class="text-xl font-bold mb-4">プロフィール設定</h2>
+        <form @submit.prevent="updateProfile" class="space-y-4">
+          <div>
+            <label class="block text-sm font-medium text-gray-400">ニックネーム</label>
+            <input
+              v-model="nickname"
+              type="text"
+              class="mt-1 block w-full rounded-lg bg-gray-900 border-gray-800 text-white shadow-sm focus:border-blue-500 focus:ring-blue-500"
+              required
+            />
+          </div>
+
+          <div v-if="message" class="text-green-500">
+            {{ message }}
+          </div>
+
+          <button
+            type="submit"
+            class="btn-primary w-full"
+          >
+            保存
+          </button>
+        </form>
+      </div>
+    </div>
   </div>
 </template>
 
