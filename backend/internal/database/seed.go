@@ -4,9 +4,18 @@ import (
 	"fmt"
 	"log"
 	"time"
+
+	"github.com/ca-ssg/devin-vuln-app/backend/internal/models"
 )
 
 func SeedInitialData() error {
+	// 初期ユーザーの作成（パスワードはSHA256でハッシュ化）
+	hashedPassword := models.HashPassword("alice")
+	userQuery := fmt.Sprintf("INSERT INTO users (id, password, nickname) VALUES ('alice', '%s', 'Alice') ON DUPLICATE KEY UPDATE password = '%s'", hashedPassword, hashedPassword)
+	if _, err := DB.Exec(userQuery); err != nil {
+		log.Printf("Error seeding user: %v", err)
+		return err
+	}
 	// サンプル投稿のコンテンツ
 	posts := []string{
 		"Hello World! 初めての投稿です。",

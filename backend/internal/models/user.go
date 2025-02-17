@@ -1,5 +1,10 @@
 package models
 
+import (
+	"crypto/sha256"
+	"encoding/hex"
+)
+
 type User struct {
 	ID       string `json:"id"`
 	Password string `json:"password,omitempty"`
@@ -13,4 +18,10 @@ type LoginRequest struct {
 
 type UpdateNicknameRequest struct {
 	Nickname string `json:"nickname" binding:"required"`
+}
+
+// HashPassword - パスワードをSHA256でハッシュ化
+func HashPassword(password string) string {
+	hash := sha256.Sum256([]byte(password))
+	return hex.EncodeToString(hash[:])
 }

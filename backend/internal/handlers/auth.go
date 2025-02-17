@@ -20,14 +20,15 @@ func Login(c *gin.Context) {
 	// 意図的な脆弱性:
 	// 1. SQLインジェクション - 文字列連結によるSQLクエリの構築
 	//    攻撃例: ID: alice'; DROP TABLE users; --
-	// 2. パスワードの平文保存
-	// 3. エラーメッセージの詳細な情報開示
+	// 2. エラーメッセージの詳細な情報開示
 	//
 	// Vulnerabilities:
 	// 1. SQL Injection through string concatenation
-	// 2. Plain text password storage
-	// 3. Detailed error message disclosure
-	query := fmt.Sprintf("SELECT id, password, nickname FROM users WHERE id = '%s' AND password = '%s'", req.ID, req.Password)
+	// 2. Detailed error message disclosure
+	//
+	// パスワードはSHA256でハッシュ化して保存
+	hashedPassword := models.HashPassword(req.Password)
+	query := fmt.Sprintf("SELECT id, password, nickname FROM users WHERE id = '%s' AND password = '%s'", req.ID, hashedPassword)
 	var user models.User
 	err := database.DB.QueryRow(query).Scan(&user.ID, &user.Password, &user.Nickname)
 	if err != nil {
