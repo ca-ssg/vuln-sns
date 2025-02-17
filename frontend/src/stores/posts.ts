@@ -19,7 +19,7 @@ export const usePostStore = defineStore('posts', () => {
 
   const fetchPosts = async () => {
     try {
-      const response = await axios.get('http://localhost:8080/posts')
+      const response = await axios.get(`${import.meta.env.VITE_API_URL}/posts`)
       posts.value = response.data
     } catch (error) {
       console.error('Failed to fetch posts:', error)
@@ -31,7 +31,7 @@ export const usePostStore = defineStore('posts', () => {
 
     try {
       const response = await axios.post(
-        'http://localhost:8080/posts',
+        `${import.meta.env.VITE_API_URL}/posts`,
         { content },
         {
           headers: { Authorization: `Bearer ${authStore.token}` }

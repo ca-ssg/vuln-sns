@@ -13,7 +13,7 @@ export const useAuthStore = defineStore('auth', () => {
 
   const login = async (id: string, password: string) => {
     try {
-      const response = await axios.post('http://localhost:8080/auth/login', { id, password })
+      const response = await axios.post(`${import.meta.env.VITE_API_URL}/auth/login`, { id, password })
       user.value = response.data.user
       token.value = response.data.token
       localStorage.setItem('token', response.data.token)
@@ -35,7 +35,7 @@ export const useAuthStore = defineStore('auth', () => {
 
     try {
       const response = await axios.put(
-        'http://localhost:8080/profile/nickname',
+        `${import.meta.env.VITE_API_URL}/profile/nickname`,
         { nickname },
         {
           headers: { Authorization: `Bearer ${token.value}` }
