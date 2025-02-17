@@ -74,7 +74,7 @@ func UpdatePost(c *gin.Context) {
 
 	// 意図的な脆弱性: アクセス制御の不備とSQLインジェクション
 	// Vulnerability: Broken Access Control and SQL Injection
-	query := fmt.Sprintf("UPDATE posts SET content = '%s' WHERE id = %s", req.Content, postID)
+	query := fmt.Sprintf("UPDATE posts SET content = '%s' WHERE id = %s AND user_id = '%s'", req.Content, postID, userID)
 	_, err := database.DB.Exec(query)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update post"})
@@ -91,7 +91,7 @@ func DeletePost(c *gin.Context) {
 
 	// 意図的な脆弱性: アクセス制御の不備とSQLインジェクション
 	// Vulnerability: Broken Access Control and SQL Injection
-	query := fmt.Sprintf("DELETE FROM posts WHERE id = %s", postID)
+	query := fmt.Sprintf("DELETE FROM posts WHERE id = %s AND user_id = '%s'", postID, userID)
 	_, err := database.DB.Exec(query)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to delete post"})
