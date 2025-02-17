@@ -1,5 +1,5 @@
 import { defineStore } from 'pinia'
-import { ref } from 'vue'
+import { ref, computed } from 'vue'
 
 interface User {
   id: string
@@ -8,6 +8,8 @@ interface User {
 export const useAuthStore = defineStore('auth', () => {
   const token = ref<string | null>(localStorage.getItem('token'))
   const user = ref<User | null>(JSON.parse(localStorage.getItem('user') || 'null'))
+
+  const isAuthenticated = computed(() => !!token.value)
 
   const login = async (id: string, password: string) => {
     try {
@@ -43,15 +45,11 @@ export const useAuthStore = defineStore('auth', () => {
     localStorage.removeItem('user')
   }
 
-  const isAuthenticated = () => {
-    return !!token.value
-  }
-
   return {
     token,
     user,
+    isAuthenticated,
     login,
     logout,
-    isAuthenticated,
   }
 })
