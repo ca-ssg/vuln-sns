@@ -10,6 +10,10 @@ services:
       - "3306:3306"
     volumes:
       - mysql_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      timeout: 5s
+      retries: 10
 
   backend:
     build:
@@ -24,7 +28,8 @@ services:
       DB_PASSWORD: vuln_pass
       DB_NAME: vuln_app
     depends_on:
-      - db
+      db:
+        condition: service_healthy
 
   frontend:
     build:

@@ -1,10 +1,11 @@
 <template>
-  <div class="max-w-2xl mx-auto border-x border-gray-800 min-h-screen">
-    <div class="max-w-md mx-auto py-12 px-4">
-      <div class="text-center mb-8">
-        <h1 class="text-3xl font-bold mb-2">VulnAppにログイン</h1>
-        <p class="text-gray-500">セキュリティの学習用アプリケーション</p>
-      </div>
+  <div class="min-h-screen bg-black">
+    <div class="max-w-2xl mx-auto border-x border-gray-800 min-h-screen">
+      <div class="max-w-md mx-auto py-12 px-4">
+        <div class="text-center mb-8">
+          <h1 class="text-3xl font-bold mb-2 text-white">VulnAppにログイン</h1>
+          <p class="text-gray-500">セキュリティの学習用アプリケーション</p>
+        </div>
       
       <form @submit.prevent="handleLogin" class="space-y-6">
         <div>

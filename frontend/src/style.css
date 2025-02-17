@@ -2,9 +2,13 @@
 @tailwind components;
 @tailwind utilities;
 
+:root {
+  color-scheme: dark;
+}
+
 @layer base {
   body {
-    @apply bg-black text-white;
+    @apply bg-black text-white min-h-screen;
   }
   
   input, textarea {
@@ -36,4 +40,8 @@
   .avatar-icon {
     @apply text-gray-400;
   }
+}
+
+#app {
+  @apply min-h-screen bg-black;
 }
