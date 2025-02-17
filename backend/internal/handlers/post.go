@@ -1,89 +1,88 @@
 package handlers
 
 import (
-	"fmt"
-	"net/http"
-	"strconv"
-
 	"github.com/ca-ssg/devin-vuln-app/backend/internal/database"
 	"github.com/ca-ssg/devin-vuln-app/backend/internal/models"
 	"github.com/gin-gonic/gin"
+	"net/http"
+	"strconv"
+	"strings"
 )
 
-// GetPosts - 投稿一覧を取得
-func GetPosts(c *gin.Context) {
-	// 意図的な脆弱性:
-	// 1. SQLインジェクション - ORDER BYの条件が操作可能
-	// 2. XSS - コンテンツのエスケープなし
-	// 3. 情報漏洩 - エラー時の詳細な情報開示
-	//
-	// Vulnerabilities:
-	// 1. SQL Injection in ORDER BY clause
-	// 2. XSS through unescaped content
-	// 3. Information leakage in error messages
-	query := `
-		SELECT p.id, p.user_id, p.content, p.created_at, p.updated_at,
-		       (SELECT COUNT(*) FROM likes WHERE post_id = p.id) as likes_count
-		FROM posts p
-		ORDER BY p.created_at DESC
-	`
-	rows, err := database.DB.Query(query)
+type PostHandler struct {
+	db *database.DB
+}
+
+func NewPostHandler(db *database.DB) *PostHandler {
+	return &PostHandler{db: db}
+}
+
+func (h *PostHandler) GetPosts(c *gin.Context) {
+	posts, err := h.db.GetPosts()
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to fetch posts"})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to get posts"})
 		return
 	}
-	defer rows.Close()
 
-	var posts []models.Post
-	for rows.Next() {
-		var post models.Post
-		err := rows.Scan(&post.ID, &post.UserID, &post.Content, &post.CreatedAt, &post.UpdatedAt, &post.Likes)
-		if err != nil {
-			continue
+	// Get current user ID from token
+	userID := strings.Split(c.GetHeader("Authorization"), "_")[0]
+
+	// Check if current user has liked each post
+	for i := range posts {
+		var exists bool
+		err := h.db.QueryRow("SELECT EXISTS(SELECT 1 FROM likes WHERE post_id = ? AND user_id = ?)", posts[i].ID, userID).Scan(&exists)
+		if err == nil && exists {
+			posts[i].IsLiked = true
 		}
-		posts = append(posts, post)
 	}
 
 	c.JSON(http.StatusOK, posts)
 }
 
-// CreatePost - 新規投稿を作成
-func CreatePost(c *gin.Context) {
-	userID, _ := c.Get("user_id")
-	var req models.CreatePostRequest
-	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+func (h *PostHandler) CreatePost(c *gin.Context) {
+	var postReq struct {
+		Content string `json:"content"`
+	}
+
+	if err := c.BindJSON(&postReq); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request"})
 		return
 	}
 
-	// 意図的な脆弱性: XSSとSQLインジェクション
-	// Vulnerability: XSS and SQL Injection
-	query := fmt.Sprintf("INSERT INTO posts (user_id, content) VALUES ('%s', '%s')", userID, req.Content)
-	result, err := database.DB.Exec(query)
-	if err != nil {
+	// Get user ID from token
+	userID := strings.Split(c.GetHeader("Authorization"), "_")[0]
+
+	post := &models.Post{
+		UserID:  userID,
+		Content: postReq.Content,
+	}
+
+	if err := h.db.CreatePost(post); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to create post"})
 		return
 	}
 
-	id, _ := result.LastInsertId()
-	c.JSON(http.StatusCreated, gin.H{"id": id, "message": "Post created successfully"})
+	c.JSON(http.StatusCreated, post)
 }
 
-// UpdatePost - 投稿を更新
-func UpdatePost(c *gin.Context) {
-	userID, _ := c.Get("user_id")
-	postID := c.Param("id")
-	var req models.UpdatePostRequest
-	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+func (h *PostHandler) UpdatePost(c *gin.Context) {
+	id, err := strconv.Atoi(c.Param("id"))
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid post ID"})
 		return
 	}
 
-	// 意図的な脆弱性: アクセス制御の不備とSQLインジェクション
-	// Vulnerability: Broken Access Control and SQL Injection
-	query := fmt.Sprintf("UPDATE posts SET content = '%s' WHERE id = %s AND user_id = '%s'", req.Content, postID, userID)
-	_, err := database.DB.Exec(query)
-	if err != nil {
+	var postReq struct {
+		Content string `json:"content"`
+	}
+
+	if err := c.BindJSON(&postReq); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request"})
+		return
+	}
+
+	// Intentionally vulnerable to SQL injection
+	if err := h.db.UpdatePost(id, postReq.Content); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update post"})
 		return
 	}
@@ -91,16 +90,14 @@ func UpdatePost(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"message": "Post updated successfully"})
 }
 
-// DeletePost - 投稿を削除
-func DeletePost(c *gin.Context) {
-	userID, _ := c.Get("user_id")
-	postID := c.Param("id")
-
-	// 意図的な脆弱性: アクセス制御の不備とSQLインジェクション
-	// Vulnerability: Broken Access Control and SQL Injection
-	query := fmt.Sprintf("DELETE FROM posts WHERE id = %s AND user_id = '%s'", postID, userID)
-	_, err := database.DB.Exec(query)
+func (h *PostHandler) DeletePost(c *gin.Context) {
+	id, err := strconv.Atoi(c.Param("id"))
 	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid post ID"})
+		return
+	}
+
+	if err := h.db.DeletePost(id); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to delete post"})
 		return
 	}
@@ -108,38 +105,36 @@ func DeletePost(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"message": "Post deleted successfully"})
 }
 
-// LikePost - 投稿にいいねを付ける/解除する
-func LikePost(c *gin.Context) {
-	userID, _ := c.Get("user_id")
-	postID, err := strconv.Atoi(c.Param("id"))
+func (h *PostHandler) ToggleLike(c *gin.Context) {
+	id, err := strconv.Atoi(c.Param("id"))
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid post ID"})
 		return
 	}
 
-	// 意図的な脆弱性: CSRFとSQLインジェクション
-	// Vulnerability: CSRF and SQL Injection
+	// Get user ID from token
+	userID := strings.Split(c.GetHeader("Authorization"), "_")[0]
+
+	// Check if like exists
 	var exists bool
-	checkQuery := fmt.Sprintf("SELECT 1 FROM likes WHERE post_id = %d AND user_id = '%s'", postID, userID)
-	err = database.DB.QueryRow(checkQuery).Scan(&exists)
-	
+	err = h.db.QueryRow("SELECT EXISTS(SELECT 1 FROM likes WHERE post_id = ? AND user_id = ?)", id, userID).Scan(&exists)
 	if err != nil {
-		// いいねが存在しない場合は追加
-		insertQuery := fmt.Sprintf("INSERT INTO likes (post_id, user_id) VALUES (%d, '%s')", postID, userID)
-		_, err = database.DB.Exec(insertQuery)
-		if err != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to like post"})
-			return
-		}
-		c.JSON(http.StatusOK, gin.H{"message": "Post liked successfully"})
-	} else {
-		// いいねが存在する場合は削除
-		deleteQuery := fmt.Sprintf("DELETE FROM likes WHERE post_id = %d AND user_id = '%s'", postID, userID)
-		_, err = database.DB.Exec(deleteQuery)
-		if err != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to unlike post"})
-			return
-		}
-		c.JSON(http.StatusOK, gin.H{"message": "Post unliked successfully"})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to check like status"})
+		return
 	}
+
+	if exists {
+		// Remove like
+		_, err = h.db.Exec("DELETE FROM likes WHERE post_id = ? AND user_id = ?", id, userID)
+	} else {
+		// Add like
+		_, err = h.db.Exec("INSERT INTO likes (post_id, user_id) VALUES (?, ?)", id, userID)
+	}
+
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to toggle like"})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"message": "Like toggled successfully"})
 }

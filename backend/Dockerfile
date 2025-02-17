@@ -1,4 +1,4 @@
-FROM golang:1.21-alpine
+FROM golang:1.21
 
 WORKDIR /app
 
@@ -7,6 +7,7 @@ RUN go mod download
 
 COPY . .
 
+RUN apt-get update && apt-get install -y curl
 RUN go build -o main .
 
 EXPOSE 8080

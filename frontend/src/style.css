@@ -3,45 +3,33 @@
 @tailwind utilities;
 
 :root {
-  color-scheme: dark;
+  --color-bg: #000000;
+  --color-text: #ffffff;
+  --color-border: #2d3748;
+  --color-primary: #3b82f6;
+  --color-secondary: #4b5563;
 }
 
-@layer base {
-  body {
-    @apply bg-black text-white min-h-screen;
-  }
-  
-  input, textarea {
-    @apply bg-gray-900 border-gray-800 text-white;
-  }
-
-  button {
-    @apply transition-colors duration-200;
-  }
+body {
+  @apply bg-black text-white;
 }
 
-@layer components {
-  .btn-primary {
-    @apply px-4 py-2 bg-blue-500 text-white rounded-full hover:bg-blue-600 font-bold;
-  }
-
-  .btn-secondary {
-    @apply px-4 py-2 border border-gray-600 text-white rounded-full hover:bg-gray-800;
-  }
-
-  .nav-link {
-    @apply flex items-center px-4 py-2 text-xl hover:bg-gray-900 transition-colors duration-200;
-  }
-
-  .avatar {
-    @apply w-12 h-12 rounded-full bg-gray-700 flex items-center justify-center flex-shrink-0;
-  }
-
-  .avatar-icon {
-    @apply text-gray-400;
-  }
+.btn-primary {
+  @apply px-4 py-2 bg-blue-500 text-white rounded-full hover:bg-blue-600 transition-colors;
 }
 
-#app {
-  @apply min-h-screen bg-black;
+.btn-secondary {
+  @apply px-4 py-2 bg-gray-800 text-gray-300 rounded-full hover:bg-gray-700 transition-colors;
+}
+
+.input-field {
+  @apply block w-full px-4 py-2 rounded-lg bg-gray-900 border border-gray-800 text-white shadow-sm focus:border-blue-500 focus:ring-blue-500;
+}
+
+.nav-link {
+  @apply text-gray-300 hover:text-white transition-colors;
+}
+
+.card {
+  @apply bg-gray-900 border border-gray-800 rounded-lg p-4;
 }
