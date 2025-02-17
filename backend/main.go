@@ -19,6 +19,11 @@ func main() {
 		log.Printf("Warning: .env file not found")
 	}
 
+	// データベースの初期化
+	if err := database.InitDB(); err != nil {
+		log.Fatal("Failed to initialize database:", err)
+	}
+
 	r := gin.Default()
 
 	// CORS設定 - 意図的に緩い設定
