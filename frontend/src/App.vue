@@ -19,7 +19,7 @@ onMounted(() => {
 <template>
   <div class="min-h-screen bg-black text-white">
     <!-- サイドバー -->
-    <div class="fixed h-screen w-64 border-r border-gray-800">
+    <div class="fixed h-screen w-64 border-r border-gray-800 bg-black">
       <div class="p-4">
         <RouterLink to="/" class="text-xl font-bold text-white hover:text-blue-400">
           VulnApp
