@@ -12,8 +12,15 @@ import (
 
 // GetPosts - 投稿一覧を取得
 func GetPosts(c *gin.Context) {
-	// 意図的な脆弱性: SQLインジェクション
-	// Vulnerability: SQL Injection
+	// 意図的な脆弱性:
+	// 1. SQLインジェクション - ORDER BYの条件が操作可能
+	// 2. XSS - コンテンツのエスケープなし
+	// 3. 情報漏洩 - エラー時の詳細な情報開示
+	//
+	// Vulnerabilities:
+	// 1. SQL Injection in ORDER BY clause
+	// 2. XSS through unescaped content
+	// 3. Information leakage in error messages
 	query := `
 		SELECT p.id, p.user_id, p.content, p.created_at, p.updated_at,
 		       (SELECT COUNT(*) FROM likes WHERE post_id = p.id) as likes_count

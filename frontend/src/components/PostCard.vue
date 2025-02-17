@@ -44,6 +44,8 @@
         </button>
       </div>
     </div>
+    <!-- 意図的な脆弱性: XSS - v-htmlによる生のHTML表示 -->
+    <!-- Vulnerability: XSS through v-html directive -->
     <div v-else class="mb-4" v-html="post.content"></div>
 
     <div class="flex items-center">
