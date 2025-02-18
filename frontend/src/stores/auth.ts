@@ -8,8 +8,19 @@ interface User {
 
 export const useAuthStore = defineStore('auth', () => {
   const token = ref<string | null>(localStorage.getItem('token'))
-  const user = ref<User | null>(JSON.parse(localStorage.getItem('user') || 'null'))
-  const isAuthenticated = computed(() => !!token.value)
+  const user = ref<User | null>(null)
+  
+  try {
+    const storedUser = localStorage.getItem('user')
+    if (storedUser) {
+      user.value = JSON.parse(storedUser)
+    }
+  } catch (e) {
+    console.error('Failed to parse stored user:', e)
+    localStorage.removeItem('user')
+  }
+
+  const isAuthenticated = computed(() => !!token.value && !!user.value)
 
   const login = async (id: string, password: string): Promise<boolean> => {
     try {
@@ -22,14 +33,18 @@ export const useAuthStore = defineStore('auth', () => {
       })
 
       if (!response.ok) {
-        const errorData = await response.json()
-        console.error('Login failed:', errorData)
+        console.error('Login failed:', await response.text())
         return false
       }
 
       const data = await response.json()
       console.log('Login response:', data)
       
+      if (!data.token || !data.user) {
+        console.error('Invalid login response:', data)
+        return false
+      }
+
       token.value = data.token
       user.value = data.user
       localStorage.setItem('token', data.token)
