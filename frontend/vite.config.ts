@@ -29,8 +29,11 @@ export default defineConfig({
   css: {
     preprocessorOptions: {
       scss: {
-        additionalData: '@import "@/quasar-variables.scss";'
+        additionalData: '@import "src/quasar-variables.scss";'
       }
     }
+  },
+  build: {
+    chunkSizeWarningLimit: 2000
   }
 })
