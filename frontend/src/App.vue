@@ -91,7 +91,9 @@
               </div>
             </q-toolbar>
           </q-header>
-          <router-view />
+          <div class="q-pa-md">
+            <router-view />
+          </div>
         </div>
 
         <!-- Right Sidebar -->
