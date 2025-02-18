@@ -2,84 +2,64 @@
   <q-card flat bordered class="post-card q-mb-md bg-black" style="border-color: #2F3336">
     <q-card-section>
       <div class="row items-center">
-        <q-avatar size="48px">
-          <img :src="'https://ui-avatars.com/api/?name=' + post.user_id" />
+        <q-avatar size="40px" class="q-mr-md">
+          <img :src="'https://ui-avatars.com/api/?name=' + post.userId" />
         </q-avatar>
-        <div class="q-ml-md">
-          <div class="text-weight-bold">{{ post.user_id }}</div>
-          <div class="text-grey-6">{{ formatDate(post.created_at) }}</div>
+        <div>
+          <div class="text-weight-bold">{{ post.userId }}</div>
+          <div class="text-caption text-grey">{{ formattedDate }}</div>
         </div>
       </div>
-      
-      <div class="q-mt-md" v-html="post.content"></div>
-
-      <div class="row q-mt-lg justify-between items-center">
-        <q-btn flat round color="grey-6" icon="far fa-comment">
-          <q-tooltip>返信</q-tooltip>
-        </q-btn>
-        
-        <q-btn flat round color="grey-6" icon="fas fa-retweet">
-          <q-tooltip>リツイート</q-tooltip>
-        </q-btn>
-        
-        <q-btn
-          flat
-          round
-          :color="isLiked ? 'pink-6' : 'grey-6'"
-          :icon="isLiked ? 'fas fa-heart' : 'far fa-heart'"
-          @click="toggleLike"
-        >
-          <q-tooltip>いいね</q-tooltip>
-        </q-btn>
-        
-        <q-btn flat round color="grey-6" icon="far fa-share-square">
-          <q-tooltip>共有</q-tooltip>
-        </q-btn>
+      <div class="q-mt-sm" v-html="post.content"></div>
+      <div class="row q-mt-md justify-between">
+        <q-btn flat round color="grey" icon="far fa-comment" />
+        <q-btn flat round color="grey" icon="fas fa-retweet" />
+        <q-btn flat round :color="post.likes > 0 ? 'pink' : 'grey'" icon="far fa-heart" @click="likePost" />
+        <q-btn flat round color="grey" icon="fas fa-share" />
       </div>
     </q-card-section>
   </q-card>
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from 'vue'
-import { useAuthStore } from '../stores/auth'
+import { computed } from 'vue'
+import { usePostStore } from '../stores/posts'
 
 const props = defineProps<{
   post: {
     id: number
-    user_id: string
+    userId: string
     content: string
-    created_at: string
+    createdAt: string
+    likes: number
   }
 }>()
 
-const authStore = useAuthStore()
-const isLiked = ref(false)
-const likesCount = ref(0)
+const postStore = usePostStore()
 
-const toggleLike = async () => {
-  if (!authStore.isAuthenticated) return
+const formattedDate = computed(() => {
+  const date = new Date(props.post.createdAt)
+  if (isNaN(date.getTime())) return ''
+  
+  const now = new Date()
+  const diff = now.getTime() - date.getTime()
+  const minutes = Math.floor(diff / 60000)
+  const hours = Math.floor(minutes / 60)
+  const days = Math.floor(hours / 24)
 
-  try {
-    const response = await fetch(`http://localhost:9090/api/posts/${props.post.id}/like`, {
-      method: 'POST',
-      headers: {
-        'Authorization': authStore.token || '',
-      },
-    })
+  if (minutes < 1) return '今'
+  if (minutes < 60) return `${minutes}分`
+  if (hours < 24) return `${hours}時間`
+  if (days < 7) return `${days}日`
 
-    if (response.ok) {
-      isLiked.value = !isLiked.value
-      likesCount.value += isLiked.value ? 1 : -1
-    }
-  } catch (error) {
-    console.error('Error toggling like:', error)
-  }
-}
+  return new Intl.DateTimeFormat('ja-JP', {
+    month: 'short',
+    day: 'numeric'
+  }).format(date)
+})
 
-const formatDate = (dateString: string) => {
-  const date = new Date(dateString)
-  return date.toLocaleDateString('ja-JP')
+const likePost = () => {
+  postStore.toggleLike(props.post.id)
 }
 </script>
 
