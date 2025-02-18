@@ -1,80 +1,102 @@
 <template>
-  <div class="min-h-screen bg-black text-white">
-    <div class="flex">
-      <!-- Left Sidebar -->
-      <div class="w-64 fixed h-screen border-r border-gray-800">
-        <div class="p-4">
-          <div class="text-xl font-bold mb-8">
-            <i class="fas fa-feather text-blue-400 text-2xl"></i>
-          </div>
-          <nav class="space-y-4">
-            <a href="/" class="flex items-center space-x-4 text-xl hover:bg-gray-900 p-3 rounded-full">
+  <q-layout view="hHh LpR fFf" class="bg-black">
+    <!-- Left Sidebar -->
+    <q-drawer show-if-above v-model="leftDrawerOpen" side="left" bordered class="bg-black" :width="280">
+      <div class="q-pa-md">
+        <div class="text-h6 q-mb-lg">
+          <i class="fas fa-feather text-primary text-h4"></i>
+        </div>
+        <q-list>
+          <q-item clickable v-ripple to="/" class="q-py-md">
+            <q-item-section avatar>
               <i class="fas fa-home"></i>
-              <span>ホーム</span>
-            </a>
-            <a href="/search" class="flex items-center space-x-4 text-xl hover:bg-gray-900 p-3 rounded-full">
+            </q-item-section>
+            <q-item-section>
+              <q-item-label class="text-h6">ホーム</q-item-label>
+            </q-item-section>
+          </q-item>
+          <q-item clickable v-ripple to="/search" class="q-py-md">
+            <q-item-section avatar>
               <i class="fas fa-search"></i>
-              <span>話題を検索</span>
-            </a>
-            <a href="/notifications" class="flex items-center space-x-4 text-xl hover:bg-gray-900 p-3 rounded-full">
-              <i class="fas fa-bell"></i>
-              <span>通知</span>
-            </a>
-            <a href="/messages" class="flex items-center space-x-4 text-xl hover:bg-gray-900 p-3 rounded-full">
-              <i class="fas fa-envelope"></i>
-              <span>メッセージ</span>
-            </a>
-            <a href="/profile" class="flex items-center space-x-4 text-xl hover:bg-gray-900 p-3 rounded-full">
+            </q-item-section>
+            <q-item-section>
+              <q-item-label class="text-h6">話題を検索</q-item-label>
+            </q-item-section>
+          </q-item>
+          <q-item clickable v-ripple to="/profile" class="q-py-md">
+            <q-item-section avatar>
               <i class="fas fa-user"></i>
-              <span>プロフィール</span>
-            </a>
-          </nav>
-          <button class="w-full bg-blue-500 hover:bg-blue-600 text-white rounded-full py-3 mt-4 font-bold">
-            投稿する
-          </button>
+            </q-item-section>
+            <q-item-section>
+              <q-item-label class="text-h6">プロフィール</q-item-label>
+            </q-item-section>
+          </q-item>
+        </q-list>
+        <q-btn color="primary" class="full-width q-mt-lg" size="lg" label="投稿する" />
+      </div>
+    </q-drawer>
+
+    <!-- Main Content -->
+    <q-page-container class="bg-black">
+      <div class="row">
+        <div class="col-12 col-md-8 offset-md-3">
+          <q-header elevated class="bg-black q-py-sm">
+            <q-toolbar>
+              <q-toolbar-title class="text-h6">ホーム</q-toolbar-title>
+              <div v-if="!isAuthenticated">
+                <q-btn flat to="/login" label="ログイン" color="primary" />
+              </div>
+              <div v-else>
+                <q-btn flat @click="logout" label="ログアウト" color="negative" />
+              </div>
+            </q-toolbar>
+          </q-header>
+          <router-view />
+        </div>
+
+        <!-- Right Sidebar -->
+        <div class="col-md-3 gt-sm">
+          <div class="q-pa-md">
+            <q-card flat bordered class="bg-dark q-pa-md">
+              <div class="text-h6 q-mb-md">トレンド</div>
+              <q-list>
+                <q-item clickable v-ripple>
+                  <q-item-section>
+                    <q-item-label caption>日本のトレンド</q-item-label>
+                    <q-item-label class="text-weight-bold">#セキュリティ</q-item-label>
+                    <q-item-label caption>1,234 投稿</q-item-label>
+                  </q-item-section>
+                </q-item>
+              </q-list>
+            </q-card>
+          </div>
         </div>
       </div>
-
-      <!-- Main Content -->
-      <div class="flex-1 ml-64">
-        <header class="sticky top-0 z-50 bg-black bg-opacity-70 backdrop-blur-md border-b border-gray-800">
-          <div class="flex justify-between items-center px-4 py-3">
-            <h1 class="text-xl font-bold">ホーム</h1>
-            <div v-if="!isAuthenticated" class="flex space-x-4">
-              <a href="/login" class="text-blue-400 hover:text-blue-500">ログイン</a>
-            </div>
-            <div v-else class="flex items-center space-x-4">
-              <button @click="logout" class="text-red-400 hover:text-red-500">ログアウト</button>
-            </div>
-          </div>
-        </header>
-        <main class="max-w-2xl mx-auto">
-          <router-view></router-view>
-        </main>
-      </div>
-
-      <!-- Right Sidebar -->
-      <div class="w-80 fixed right-0 h-screen border-l border-gray-800 p-4">
-        <div class="bg-gray-900 rounded-2xl p-4 mb-4">
-          <h2 class="text-xl font-bold mb-4">トレンド</h2>
-          <div class="space-y-4">
-            <div class="hover:bg-gray-800 p-2 rounded-lg cursor-pointer">
-              <p class="text-gray-500 text-sm">日本のトレンド</p>
-              <p class="font-bold">#セキュリティ</p>
-              <p class="text-gray-500 text-sm">1,234 投稿</p>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
+    </q-page-container>
+  </q-layout>
 </template>
 
 <script setup lang="ts">
+import { ref } from 'vue'
 import { useAuthStore } from './stores/auth'
 import { storeToRefs } from 'pinia'
 
+const leftDrawerOpen = ref(true)
 const authStore = useAuthStore()
 const { isAuthenticated } = storeToRefs(authStore)
 const { logout } = authStore
 </script>
+
+<style>
+.q-drawer {
+  border-color: #2F3336 !important;
+}
+
+.q-card {
+  border-color: #2F3336 !important;
+}
+
+.q-toolbar {
+  border-bottom: 1px solid #2F3336;
+}
+</style>

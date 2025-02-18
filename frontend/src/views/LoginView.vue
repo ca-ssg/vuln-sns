@@ -1,63 +1,58 @@
 <template>
-  <div class="min-h-screen bg-black">
-    <div class="max-w-2xl mx-auto border-x border-gray-800 min-h-screen">
-      <nav class="px-4 py-3 border-b border-gray-800">
-        <div class="flex items-center justify-between">
-          <a href="/" class="text-xl font-bold text-white hover:text-blue-400">VulnApp</a>
-          <a href="/login" class="text-gray-300 hover:text-white">ログイン</a>
-        </div>
-      </nav>
-      
-      <div class="max-w-md mx-auto py-12 px-4">
-        <div class="text-center mb-8">
-          <h1 class="text-3xl font-bold mb-2 text-white">VulnAppにログイン</h1>
-          <p class="text-gray-500">セキュリティの学習用アプリケーション</p>
-        </div>
-        
-        <form @submit.prevent="handleLogin" class="space-y-6">
-          <div>
-            <label for="userid" class="block text-sm font-medium text-gray-400">ユーザーID</label>
-            <div class="mt-1 relative">
-              <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-gray-500">
-                <i class="fas fa-user"></i>
-              </span>
-              <input
-                id="userid"
-                v-model="id"
-                type="text"
-                class="block w-full pl-10 rounded-lg bg-gray-900 border border-gray-800 text-white shadow-sm focus:border-blue-500 focus:ring-blue-500"
-                required
-              />
-            </div>
+  <q-page class="flex flex-center bg-black">
+    <q-card flat bordered class="login-card bg-black q-pa-xl" style="width: 400px">
+      <q-card-section class="text-center q-pb-xl">
+        <i class="fas fa-feather text-primary text-h2 q-mb-md"></i>
+        <div class="text-h4 text-weight-bold q-mb-sm">VulnAppにログイン</div>
+        <div class="text-grey-6">セキュリティの学習用アプリケーション</div>
+      </q-card-section>
+
+      <q-card-section>
+        <form @submit.prevent="handleLogin">
+          <div class="q-gutter-y-md">
+            <q-input
+              v-model="id"
+              label="ユーザーID"
+              class="bg-black"
+              outlined
+              :rules="[val => !!val || 'IDを入力してください']"
+            >
+              <template v-slot:prepend>
+                <q-icon name="fas fa-user" />
+              </template>
+            </q-input>
+
+            <q-input
+              v-model="password"
+              type="password"
+              label="パスワード"
+              class="bg-black"
+              outlined
+              :rules="[val => !!val || 'パスワードを入力してください']"
+            >
+              <template v-slot:prepend>
+                <q-icon name="fas fa-lock" />
+              </template>
+            </q-input>
+
+            <div v-if="error" class="text-negative text-center q-mb-md">{{ error }}</div>
+
+            <q-btn
+              type="submit"
+              color="primary"
+              class="full-width q-py-sm text-h6"
+              label="ログイン"
+              unelevated
+            />
           </div>
-          
-          <div>
-            <label for="password" class="block text-sm font-medium text-gray-400">パスワード</label>
-            <div class="mt-1 relative">
-              <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-gray-500">
-                <i class="fas fa-lock"></i>
-              </span>
-              <input
-                id="password"
-                v-model="password"
-                type="password"
-                class="block w-full pl-10 rounded-lg bg-gray-900 border border-gray-800 text-white shadow-sm focus:border-blue-500 focus:ring-blue-500"
-                required
-              />
-            </div>
-          </div>
-          
-          <div v-if="error" class="text-red-500 text-center">{{ error }}</div>
-          
-          <button type="submit" class="w-full flex justify-center py-3 px-4 rounded-full text-white bg-blue-500 hover:bg-blue-600 font-bold text-lg">
-            ログイン
-          </button>
-          
-          <p class="text-center text-sm text-gray-500">初期アカウントについてはREADMEをご確認ください</p>
         </form>
-      </div>
-    </div>
-  </div>
+      </q-card-section>
+
+      <q-card-section class="text-center text-grey-6 text-caption">
+        初期アカウントについてはREADMEをご確認ください
+      </q-card-section>
+    </q-card>
+  </q-page>
 </template>
 
 <script setup lang="ts">
@@ -86,3 +81,12 @@ const handleLogin = async () => {
   }
 }
 </script>
+
+<style scoped>
+.q-field {
+  border-color: #2F3336;
+}
+.q-field--outlined .q-field__control:before {
+  border-color: #2F3336;
+}
+</style>

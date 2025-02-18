@@ -1,16 +1,17 @@
-CREATE DATABASE IF NOT EXISTS vuln_app;
+CREATE DATABASE IF NOT EXISTS vuln_app CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 USE vuln_app;
 
 CREATE TABLE IF NOT EXISTS users (
     id VARCHAR(255) PRIMARY KEY,
-    password VARCHAR(255) NOT NULL
+    password VARCHAR(255) NOT NULL,
+    nickname VARCHAR(255)
 );
 
 CREATE TABLE IF NOT EXISTS posts (
     id INT AUTO_INCREMENT PRIMARY KEY,
     user_id VARCHAR(255) NOT NULL,
     content TEXT NOT NULL,
-    created_at DATETIME NOT NULL,
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (user_id) REFERENCES users(id)
 );
 
@@ -22,7 +23,8 @@ CREATE TABLE IF NOT EXISTS likes (
     FOREIGN KEY (user_id) REFERENCES users(id)
 );
 
-INSERT IGNORE INTO users (id, password) VALUES ('alice', SHA2('alice', 256));
+INSERT IGNORE INTO users (id, password, nickname) 
+VALUES ('alice', SHA2('alice', 256), 'Alice');
 
 INSERT IGNORE INTO posts (user_id, content, created_at) VALUES 
 ('alice', '初めての投稿です！', NOW()),
