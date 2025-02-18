@@ -25,5 +25,12 @@ export default defineConfig({
     hmr: {
       overlay: false
     }
+  },
+  css: {
+    preprocessorOptions: {
+      scss: {
+        additionalData: '@import "@/quasar-variables.scss";'
+      }
+    }
   }
 })
