@@ -32,7 +32,14 @@
             </q-item-section>
           </q-item>
         </q-list>
-        <q-btn color="primary" class="full-width q-mt-lg" size="lg" label="投稿する" @click="showPostDialog = true" />
+        <q-btn 
+          v-if="isAuthenticated"
+          color="primary" 
+          class="full-width q-mt-lg" 
+          size="lg" 
+          label="投稿する"
+          @click="showPostDialog = true" 
+        />
       </div>
     </q-drawer>
 
@@ -111,12 +118,13 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import { useAuthStore } from './stores/auth'
-import { storeToRefs } from 'pinia'
 import { usePostStore } from './stores/posts'
+import { storeToRefs } from 'pinia'
 
 const leftDrawerOpen = ref(true)
 const showPostDialog = ref(false)
 const newPost = ref('')
+
 const authStore = useAuthStore()
 const postStore = usePostStore()
 const { isAuthenticated } = storeToRefs(authStore)
