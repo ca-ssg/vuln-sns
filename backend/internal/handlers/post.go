@@ -1,37 +1,30 @@
 package handlers
 
 import (
-    "encoding/json"
     "net/http"
-    "strconv"
-    "time"
-
-    "github.com/ca-ssg/devin-vuln-app/internal/database"
-    "github.com/ca-ssg/devin-vuln-app/internal/models"
-    "github.com/gorilla/mux"
+    "github.com/gin-gonic/gin"
+    "github.com/ca-ssg/devin-vuln-app/backend/internal/database"
+    "github.com/ca-ssg/devin-vuln-app/backend/internal/models"
 )
 
-func CreatePost(w http.ResponseWriter, r *http.Request) {
-    var post models.Post
-    if err := json.NewDecoder(r.Body).Decode(&post); err != nil {
-        http.Error(w, err.Error(), http.StatusBadRequest)
-        return
-    }
-
-    post.CreatedAt = time.Now()
-    post.UpdatedAt = time.Now()
-
-    result, err := database.DB.Exec(
-        "INSERT INTO posts (user_id, content, created_at, updated_at, likes) VALUES (?, ?, ?, ?, ?)",
-        post.UserID, post.Content, post.CreatedAt, post.UpdatedAt, 0,
-    )
+func GetPosts(c *gin.Context) {
+    posts, err := database.GetPosts()
     if err != nil {
-        http.Error(w, err.Error(), http.StatusInternalServerError)
+        c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
         return
     }
+    c.JSON(http.StatusOK, posts)
+}
 
-    id, _ := result.LastInsertId()
-    post.ID = id
-
-    json.NewEncoder(w).Encode(post)
+func CreatePost(c *gin.Context) {
+    var post models.Post
+    if err := c.ShouldBindJSON(&post); err != nil {
+        c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+        return
+    }
+    if err := database.CreatePost(&post); err != nil {
+        c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+        return
+    }
+    c.JSON(http.StatusOK, post)
 }

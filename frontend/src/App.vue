@@ -1,7 +1,7 @@
 <template>
   <q-layout view="hHh LpR fFf" class="bg-black">
     <!-- Left Sidebar -->
-    <q-drawer show-if-above v-model="leftDrawerOpen" side="left" bordered class="bg-black" :width="280">
+    <q-drawer v-if="isAuthenticated" show-if-above v-model="leftDrawerOpen" side="left" bordered class="bg-black" :width="280">
       <div class="q-pa-md">
         <div class="text-h6 q-mb-lg">
           <i class="fas fa-feather text-primary text-h4"></i>
@@ -33,44 +33,46 @@
           </q-item>
         </q-list>
         <q-btn 
-          v-if="isAuthenticated"
           color="primary" 
           class="full-width q-mt-lg" 
           size="lg" 
           label="投稿する"
-          @click="showPostDialog = true" 
+          @click="openPostDialog" 
         />
       </div>
     </q-drawer>
 
     <!-- Post Dialog -->
     <q-dialog v-model="showPostDialog">
-      <q-card class="bg-black" style="width: 600px; max-width: 80vw;">
-        <q-card-section class="row items-center">
+      <q-card dark class="bg-dark" style="width: 600px; max-width: 80vw;">
+        <q-card-section class="row items-center q-pb-none">
           <div class="text-h6">新規投稿</div>
           <q-space />
           <q-btn icon="close" flat round dense v-close-popup />
         </q-card-section>
 
-        <q-card-section>
+        <q-card-section class="q-pt-md">
           <q-input
             v-model="newPost"
             type="textarea"
-            class="bg-black"
-            outlined
+            dark
+            borderless
             autogrow
             placeholder="いまどうしてる？"
+            class="text-h6"
+            maxlength="280"
+            devinid="26"
           />
         </q-card-section>
 
-        <q-card-actions align="right">
-          <q-btn flat label="キャンセル" color="negative" v-close-popup />
+        <q-card-actions align="right" class="q-pa-md">
           <q-btn 
             flat 
             label="投稿する" 
             color="primary" 
             @click="createPost" 
             :disable="!newPost.trim()" 
+            devinid="27"
           />
         </q-card-actions>
       </q-card>
@@ -140,12 +142,20 @@ const postStore = usePostStore()
 const { isAuthenticated } = storeToRefs(authStore)
 const { logout } = authStore
 
+const openPostDialog = () => {
+  showPostDialog.value = true
+}
+
 const createPost = async () => {
   if (newPost.value.trim()) {
-    await postStore.createPost(newPost.value)
-    newPost.value = ''
-    showPostDialog.value = false
-    await postStore.fetchPosts() // Refresh posts after creating
+    try {
+      await postStore.createPost(newPost.value)
+      newPost.value = ''
+      showPostDialog.value = false
+      await postStore.fetchPosts() // Refresh posts after creating
+    } catch (error) {
+      console.error('Failed to create post:', error)
+    }
   }
 }
 </script>

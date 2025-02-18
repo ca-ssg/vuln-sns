@@ -1,43 +1,43 @@
 package database
 
 import (
-	"crypto/sha256"
-	"encoding/hex"
-	"github.com/ca-ssg/devin-vuln-app/backend/internal/models"
+    "log"
+    "time"
 )
 
-func SeedData(db *DB) error {
-	// Create initial user
-	password := "alice"
-	hash := sha256.Sum256([]byte(password))
-	hashedPassword := hex.EncodeToString(hash[:])
+func SeedData() error {
+    if db == nil {
+        return nil
+    }
 
-	user := &models.User{
-		ID:       "alice",
-		Password: hashedPassword,
-	}
+    // Create initial user
+    _, err := db.Exec("INSERT IGNORE INTO users (id, password, nickname) VALUES (?, SHA2(?, 256), ?)", "alice", "alice", "Alice")
+    if err != nil {
+        log.Printf("Error seeding user: %v", err)
+        return err
+    }
 
-	if err := db.CreateUser(user); err != nil {
-		return err
-	}
+    // Create sample posts
+    posts := []struct {
+        userID  string
+        content string
+    }{
+        {"alice", "セキュリティについて考えています #セキュリティ"},
+        {"alice", "脆弱性の学習は大切ですね #脆弱性"},
+        {"alice", "今日もコードレビューを頑張ります！"},
+    }
 
-	// Create sample posts
-	posts := []models.Post{
-		{
-			UserID:  "alice",
-			Content: "初めての投稿です！",
-		},
-		{
-			UserID:  "alice",
-			Content: "セキュリティの学習頑張ります！",
-		},
-	}
+    for _, p := range posts {
+        now := time.Now()
+        _, err := db.Exec(
+            "INSERT IGNORE INTO posts (user_id, content, created_at, updated_at, likes) VALUES (?, ?, ?, ?, ?)",
+            p.userID, p.content, now, now, 0,
+        )
+        if err != nil {
+            log.Printf("Error seeding post: %v", err)
+            return err
+        }
+    }
 
-	for _, post := range posts {
-		if err := db.CreatePost(&post); err != nil {
-			return err
-		}
-	}
-
-	return nil
+    return nil
 }

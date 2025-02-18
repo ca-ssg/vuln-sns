@@ -1,11 +1,11 @@
 import { createApp } from 'vue'
 import { createPinia } from 'pinia'
-import { Quasar } from 'quasar'
+import { Quasar, Notify } from 'quasar'
 
 // Import Quasar css
 import '@quasar/extras/material-icons/material-icons.css'
 import '@quasar/extras/fontawesome-v6/fontawesome-v6.css'
-import 'quasar/src/css/index.sass'
+import 'quasar/dist/quasar.css'
 
 // Import app css
 import './style.css'
@@ -17,7 +17,7 @@ const app = createApp(App)
 app.use(createPinia())
 app.use(router)
 app.use(Quasar, {
-  plugins: {},
+  plugins: { Notify },
   config: {
     dark: true,
     brand: {
@@ -25,6 +25,11 @@ app.use(Quasar, {
       secondary: '#657786',
       accent: '#F91880',
       dark: '#000000'
+    },
+    notify: {
+      position: 'top',
+      timeout: 2500,
+      textColor: 'white'
     }
   }
 })

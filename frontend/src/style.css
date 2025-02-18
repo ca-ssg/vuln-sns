@@ -1,6 +1,30 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+/* Import Quasar styles */
+@import 'quasar/dist/quasar.css';
+
+/* Custom styles */
+:root {
+  --q-primary: #1DA1F2;
+  --q-secondary: #657786;
+  --q-accent: #F91880;
+  --q-dark: #000000;
+}
+
+body {
+  background-color: var(--q-dark);
+  color: #ffffff;
+}
+
+.q-field__native {
+  color: #ffffff !important;
+}
+
+.q-field__control {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.q-card {
+  background: #15202B;
+}
 
 :root {
   --color-bg: #000000;
