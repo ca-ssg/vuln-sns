@@ -67,6 +67,13 @@
                     <q-item-label caption>1,234 投稿</q-item-label>
                   </q-item-section>
                 </q-item>
+                <q-item clickable v-ripple>
+                  <q-item-section>
+                    <q-item-label caption>テクノロジー</q-item-label>
+                    <q-item-label class="text-weight-bold">#脆弱性</q-item-label>
+                    <q-item-label caption>891 投稿</q-item-label>
+                  </q-item-section>
+                </q-item>
               </q-list>
             </q-card>
           </div>
@@ -98,5 +105,13 @@ const { logout } = authStore
 
 .q-toolbar {
   border-bottom: 1px solid #2F3336;
+}
+
+.q-item {
+  min-height: 56px;
+}
+
+.q-item:hover {
+  background: rgba(255, 255, 255, 0.03);
 }
 </style>
