@@ -46,8 +46,10 @@
     <!-- Post Dialog -->
     <q-dialog v-model="showPostDialog">
       <q-card class="bg-black" style="width: 600px; max-width: 80vw;">
-        <q-card-section>
+        <q-card-section class="row items-center">
           <div class="text-h6">新規投稿</div>
+          <q-space />
+          <q-btn icon="close" flat round dense v-close-popup />
         </q-card-section>
 
         <q-card-section>
@@ -63,7 +65,13 @@
 
         <q-card-actions align="right">
           <q-btn flat label="キャンセル" color="negative" v-close-popup />
-          <q-btn flat label="投稿する" color="primary" @click="createPost" :disable="!newPost.trim()" />
+          <q-btn 
+            flat 
+            label="投稿する" 
+            color="primary" 
+            @click="createPost" 
+            :disable="!newPost.trim()" 
+          />
         </q-card-actions>
       </q-card>
     </q-dialog>
@@ -158,5 +166,9 @@ const createPost = async () => {
 
 .q-item:hover {
   background: rgba(255, 255, 255, 0.03);
+}
+
+.q-dialog__inner {
+  background: rgba(91, 112, 131, 0.4) !important;
 }
 </style>
