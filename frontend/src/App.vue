@@ -143,6 +143,7 @@ const createPost = async () => {
     await postStore.createPost(newPost.value)
     newPost.value = ''
     showPostDialog.value = false
+    await postStore.fetchPosts() // Refresh posts after creating
   }
 }
 </script>
