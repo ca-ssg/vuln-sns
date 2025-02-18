@@ -19,7 +19,13 @@ app.use(router)
 app.use(Quasar, {
   plugins: {},
   config: {
-    dark: true
+    dark: true,
+    brand: {
+      primary: '#1DA1F2',
+      secondary: '#657786',
+      accent: '#F91880',
+      dark: '#000000'
+    }
   }
 })
 app.mount('#app')
