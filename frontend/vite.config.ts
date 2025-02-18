@@ -10,9 +10,7 @@ export default defineConfig({
       template: { transformAssetUrls }
     }),
     vueJsx(),
-    quasar({
-      sassVariables: 'src/quasar-variables.scss'
-    })
+    quasar()
   ],
   resolve: {
     alias: {
@@ -29,11 +27,8 @@ export default defineConfig({
   css: {
     preprocessorOptions: {
       scss: {
-        additionalData: '@import "src/quasar-variables.scss";'
+        additionalData: '@import "./src/quasar-variables.scss";'
       }
     }
-  },
-  build: {
-    chunkSizeWarningLimit: 2000
   }
 })
