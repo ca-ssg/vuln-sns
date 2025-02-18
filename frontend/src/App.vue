@@ -32,9 +32,34 @@
             </q-item-section>
           </q-item>
         </q-list>
-        <q-btn color="primary" class="full-width q-mt-lg" size="lg" label="投稿する" />
+        <q-btn color="primary" class="full-width q-mt-lg" size="lg" label="投稿する" @click="showPostDialog = true" />
       </div>
     </q-drawer>
+
+    <!-- Post Dialog -->
+    <q-dialog v-model="showPostDialog">
+      <q-card class="bg-black" style="width: 600px; max-width: 80vw;">
+        <q-card-section>
+          <div class="text-h6">新規投稿</div>
+        </q-card-section>
+
+        <q-card-section>
+          <q-input
+            v-model="newPost"
+            type="textarea"
+            class="bg-black"
+            outlined
+            autogrow
+            placeholder="いまどうしてる？"
+          />
+        </q-card-section>
+
+        <q-card-actions align="right">
+          <q-btn flat label="キャンセル" color="negative" v-close-popup />
+          <q-btn flat label="投稿する" color="primary" @click="createPost" :disable="!newPost.trim()" />
+        </q-card-actions>
+      </q-card>
+    </q-dialog>
 
     <!-- Main Content -->
     <q-page-container class="bg-black">
@@ -87,11 +112,23 @@
 import { ref } from 'vue'
 import { useAuthStore } from './stores/auth'
 import { storeToRefs } from 'pinia'
+import { usePostStore } from './stores/posts'
 
 const leftDrawerOpen = ref(true)
+const showPostDialog = ref(false)
+const newPost = ref('')
 const authStore = useAuthStore()
+const postStore = usePostStore()
 const { isAuthenticated } = storeToRefs(authStore)
 const { logout } = authStore
+
+const createPost = async () => {
+  if (newPost.value.trim()) {
+    await postStore.createPost(newPost.value)
+    newPost.value = ''
+    showPostDialog.value = false
+  }
+}
 </script>
 
 <style>

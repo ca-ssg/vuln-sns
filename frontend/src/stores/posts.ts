@@ -1,7 +1,5 @@
 import { defineStore } from 'pinia'
 import { ref } from 'vue'
-import axios from 'axios'
-import { useAuthStore } from './auth'
 
 interface Post {
   id: number
@@ -10,91 +8,71 @@ interface Post {
   createdAt: string
   updatedAt: string
   likes: number
-  isLiked?: boolean
 }
 
 export const usePostStore = defineStore('posts', () => {
   const posts = ref<Post[]>([])
-  const authStore = useAuthStore()
 
   const fetchPosts = async () => {
     try {
-      const response = await axios.get(`${import.meta.env.VITE_API_URL}/posts`)
-      posts.value = response.data
+      const response = await fetch('http://localhost:9090/api/posts')
+      if (!response.ok) {
+        throw new Error('Failed to fetch posts')
+      }
+      posts.value = await response.json()
     } catch (error) {
-      console.error('Failed to fetch posts:', error)
+      console.error('Error fetching posts:', error)
     }
   }
 
   const createPost = async (content: string) => {
-    if (!authStore.token) return false
-
     try {
-      const response = await axios.post(
-        `${import.meta.env.VITE_API_URL}/posts`,
-        { content },
-        {
-          headers: { Authorization: `Bearer ${authStore.token}` }
-        }
-      )
-      await fetchPosts()
-      return true
-    } catch (error) {
-      console.error('Failed to create post:', error)
-      return false
-    }
-  }
-
-  const updatePost = async (id: number, content: string) => {
-    if (!authStore.token) return false
-
-    try {
-      await axios.put(
-        `http://localhost:8080/posts/${id}`,
-        { content },
-        {
-          headers: { Authorization: `Bearer ${authStore.token}` }
-        }
-      )
-      await fetchPosts()
-      return true
-    } catch (error) {
-      console.error('Failed to update post:', error)
-      return false
-    }
-  }
-
-  const deletePost = async (id: number) => {
-    if (!authStore.token) return false
-
-    try {
-      await axios.delete(`http://localhost:8080/posts/${id}`, {
-        headers: { Authorization: `Bearer ${authStore.token}` }
+      const token = localStorage.getItem('token')
+      const user = JSON.parse(localStorage.getItem('user') || '{}')
+      
+      const response = await fetch('http://localhost:9090/api/posts', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': token || '',
+        },
+        body: JSON.stringify({
+          userId: user.id,
+          content,
+        }),
       })
-      await fetchPosts()
-      return true
+
+      if (!response.ok) {
+        throw new Error('Failed to create post')
+      }
+
+      const newPost = await response.json()
+      posts.value.unshift(newPost)
     } catch (error) {
-      console.error('Failed to delete post:', error)
-      return false
+      console.error('Error creating post:', error)
     }
   }
 
-  const toggleLike = async (id: number) => {
-    if (!authStore.token) return false
-
+  const toggleLike = async (postId: number) => {
     try {
-      await axios.post(
-        `http://localhost:8080/posts/${id}/like`,
-        {},
-        {
-          headers: { Authorization: `Bearer ${authStore.token}` }
-        }
-      )
-      await fetchPosts()
-      return true
+      const token = localStorage.getItem('token')
+      const response = await fetch(`http://localhost:9090/api/posts/${postId}/like`, {
+        method: 'POST',
+        headers: {
+          'Authorization': token || '',
+        },
+      })
+
+      if (!response.ok) {
+        throw new Error('Failed to toggle like')
+      }
+
+      const post = posts.value.find(p => p.id === postId)
+      if (post) {
+        post.likes = post.likes + 1
+      }
     } catch (error) {
-      console.error('Failed to toggle like:', error)
-      return false
+      console.error('Error toggling like:', error)
     }
   }
 
@@ -102,8 +80,6 @@ export const usePostStore = defineStore('posts', () => {
     posts,
     fetchPosts,
     createPost,
-    updatePost,
-    deletePost,
-    toggleLike
+    toggleLike,
   }
 })
