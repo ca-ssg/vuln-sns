@@ -7,16 +7,20 @@ interface User {
 }
 
 export const useAuthStore = defineStore('auth', () => {
-  const token = ref<string | null>(localStorage.getItem('token'))
+  const token = ref<string | null>(null)
   const user = ref<User | null>(null)
   
+  // Initialize from localStorage
   try {
+    const storedToken = localStorage.getItem('token')
     const storedUser = localStorage.getItem('user')
-    if (storedUser) {
+    if (storedToken && storedUser) {
+      token.value = storedToken
       user.value = JSON.parse(storedUser)
     }
   } catch (e) {
     console.error('Failed to parse stored user:', e)
+    localStorage.removeItem('token')
     localStorage.removeItem('user')
   }
 
