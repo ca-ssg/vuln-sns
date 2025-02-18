@@ -82,11 +82,14 @@ const handleLogin = async () => {
 }
 </script>
 
-<style scoped>
+<style>
 .q-field {
   border-color: #2F3336;
 }
 .q-field--outlined .q-field__control:before {
   border-color: #2F3336;
+}
+.q-card {
+  border-color: #2F3336 !important;
 }
 </style>
