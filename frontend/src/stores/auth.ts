@@ -3,15 +3,15 @@ import { ref, computed } from 'vue'
 
 interface User {
   id: string
+  nickname?: string
 }
 
 export const useAuthStore = defineStore('auth', () => {
   const token = ref<string | null>(localStorage.getItem('token'))
   const user = ref<User | null>(JSON.parse(localStorage.getItem('user') || 'null'))
-
   const isAuthenticated = computed(() => !!token.value)
 
-  const login = async (id: string, password: string) => {
+  const login = async (id: string, password: string): Promise<boolean> => {
     try {
       const response = await fetch('http://localhost:9090/api/login', {
         method: 'POST',
@@ -22,11 +22,14 @@ export const useAuthStore = defineStore('auth', () => {
       })
 
       if (!response.ok) {
-        console.error('Login failed:', await response.text())
+        const errorData = await response.json()
+        console.error('Login failed:', errorData)
         return false
       }
 
       const data = await response.json()
+      console.log('Login response:', data)
+      
       token.value = data.token
       user.value = data.user
       localStorage.setItem('token', data.token)
