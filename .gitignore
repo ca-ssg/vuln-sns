@@ -1,0 +1,12 @@
+
+# Environment files
+.env
+*.env
+docker-compose.yml
+
+# Logs
+*.log
+
+# IDE files
+.idea/
+.vscode/

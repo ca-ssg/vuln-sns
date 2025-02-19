@@ -1,41 +1,57 @@
 package database
 
 import (
+    "database/sql"
     "log"
     "time"
 )
 
-func SeedData() error {
-    if DB == nil {
-        return nil
-    }
-
-    // Create initial user
-    _, err := DB.Exec("INSERT IGNORE INTO users (id, password, nickname) VALUES (?, SHA2(?, 256), ?)", "alice", "alice", "Alice")
-    if err != nil {
-        log.Printf("Error seeding user: %v", err)
-        return err
-    }
-
-    // Create sample posts
-    posts := []struct {
-        userID  string
-        content string
+func SeedDatabase(db *sql.DB) error {
+    // Sample users with passwords
+    users := []struct {
+        ID       string
+        Nickname string
+        Password string
     }{
-        {"alice", "セキュリティについて考えています #セキュリティ"},
-        {"alice", "脆弱性の学習は大切ですね #脆弱性"},
-        {"alice", "今日もコードレビューを頑張ります！"},
+        {"alice", "Alice", "alice"},
+        {"bob", "Bob", "bob"},
+        {"charlie", "Charlie", "charlie"},
     }
 
-    for _, p := range posts {
-        now := time.Now()
-        _, err := DB.Exec(
-            "INSERT IGNORE INTO posts (user_id, content, created_at, updated_at, likes) VALUES (?, ?, ?, ?, ?)",
-            p.userID, p.content, now, now, 0,
+    // Sample posts with hashtags
+    posts := []struct {
+        UserID  string
+        Content string
+    }{
+        {"alice", "Webアプリケーションの #セキュリティ について学んでいます。"},
+        {"bob", "新しい #脆弱性 が見つかりました。"},
+        {"charlie", "#セキュリティ 対策は重要ですね。"},
+        {"alice", "SQLインジェクションは怖い #脆弱性 です。"},
+        {"bob", "今日は #セキュリティ の勉強会に参加しました！"},
+    }
+
+    // Insert users
+    for _, user := range users {
+        _, err := db.Exec("INSERT INTO users (id, nickname, password) VALUES (?, ?, ?)", 
+            user.ID, user.Nickname, user.Password)
+        if err != nil {
+            log.Printf("Error inserting user %s: %v", user.ID, err)
+            continue
+        }
+    }
+
+    // Insert posts
+    for _, post := range posts {
+        _, err := db.Exec(
+            "INSERT INTO posts (user_id, content, created_at, updated_at) VALUES (?, ?, ?, ?)",
+            post.UserID,
+            post.Content,
+            time.Now(),
+            time.Now(),
         )
         if err != nil {
-            log.Printf("Error seeding post: %v", err)
-            return err
+            log.Printf("Error inserting post for user %s: %v", post.UserID, err)
+            continue
         }
     }
 

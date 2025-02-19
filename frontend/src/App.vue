@@ -1,187 +1,147 @@
 <template>
   <q-layout view="hHh LpR fFf" class="bg-black">
-    <!-- Left Sidebar -->
-    <q-drawer v-if="isAuthenticated" show-if-above v-model="leftDrawerOpen" side="left" bordered class="bg-black" :width="280">
-      <div class="q-pa-md">
-        <div class="text-h6 q-mb-lg">
-          <i class="fas fa-feather text-primary text-h4"></i>
-        </div>
-        <q-list>
-          <q-item clickable v-ripple to="/" class="q-py-md">
-            <q-item-section avatar>
-              <i class="fas fa-home"></i>
-            </q-item-section>
-            <q-item-section>
-              <q-item-label class="text-h6">ホーム</q-item-label>
-            </q-item-section>
-          </q-item>
-          <q-item clickable v-ripple to="/search" class="q-py-md">
-            <q-item-section avatar>
-              <i class="fas fa-search"></i>
-            </q-item-section>
-            <q-item-section>
-              <q-item-label class="text-h6">話題を検索</q-item-label>
-            </q-item-section>
-          </q-item>
-          <q-item clickable v-ripple to="/profile" class="q-py-md">
-            <q-item-section avatar>
-              <i class="fas fa-user"></i>
-            </q-item-section>
-            <q-item-section>
-              <q-item-label class="text-h6">プロフィール</q-item-label>
-            </q-item-section>
-          </q-item>
-        </q-list>
-        <q-btn 
-          color="primary" 
-          class="full-width q-mt-lg" 
-          size="lg" 
-          label="投稿する"
-          @click="openPostDialog" 
-        />
-      </div>
+    <!-- Header with mobile menu button -->
+    <q-header elevated class="bg-black q-py-sm">
+      <q-toolbar>
+        <q-btn dense flat round icon="menu" @click="leftDrawerOpen = !leftDrawerOpen" class="lt-md" />
+        <q-toolbar-title class="text-h6">ホーム</q-toolbar-title>
+      </q-toolbar>
+    </q-header>
+
+    <!-- Responsive drawer - behavior changes on mobile -->
+    <q-drawer
+      v-model="leftDrawerOpen"
+      :breakpoint="1024"
+      :behavior="$q.screen.lt.md ? 'mobile' : 'desktop'"
+      bordered
+      class="bg-black"
+      show-if-above
+    >
+      <q-list>
+        <q-item clickable v-ripple to="/" exact>
+          <q-item-section avatar>
+            <q-icon name="home" size="md" />
+          </q-item-section>
+          <q-item-section>
+            <q-item-label class="text-h6">ホーム</q-item-label>
+          </q-item-section>
+        </q-item>
+
+        <q-item clickable v-ripple to="/profile">
+          <q-item-section avatar>
+            <q-icon name="person" size="md" />
+          </q-item-section>
+          <q-item-section>
+            <q-item-label class="text-h6">プロフィール</q-item-label>
+          </q-item-section>
+        </q-item>
+
+        <q-separator class="q-my-md" />
+
+        <q-item-label header>トレンド</q-item-label>
+        <q-item clickable v-ripple @click="searchHashtag(tag)" v-for="tag in ['セキュリティ', '脆弱性']" :key="tag">
+          <q-item-section>
+            <q-item-label caption>トレンド</q-item-label>
+            <q-item-label class="text-weight-bold">#{{ tag }}</q-item-label>
+            <q-item-label caption>{{ tag === 'セキュリティ' ? '1,234' : '891' }} 投稿</q-item-label>
+          </q-item-section>
+        </q-item>
+
+        <q-separator class="q-my-md" />
+
+        <q-item v-if="!isLoggedIn" clickable v-ripple to="/login">
+          <q-item-section>
+            <q-item-label class="text-h6">ログイン</q-item-label>
+          </q-item-section>
+        </q-item>
+
+        <q-item v-else clickable v-ripple @click="logout">
+          <q-item-section>
+            <q-item-label class="text-h6">ログアウト</q-item-label>
+          </q-item-section>
+        </q-item>
+      </q-list>
     </q-drawer>
 
-    <!-- Post Dialog -->
-    <q-dialog v-model="showPostDialog">
-      <q-card dark class="bg-dark" style="width: 600px; max-width: 80vw;">
-        <q-card-section class="row items-center q-pb-none">
-          <div class="text-h6">新規投稿</div>
-          <q-space />
-          <q-btn icon="close" flat round dense v-close-popup />
-        </q-card-section>
-
-        <q-card-section class="q-pt-md">
-          <q-input
-            v-model="newPost"
-            type="textarea"
-            dark
-            borderless
-            autogrow
-            placeholder="いまどうしてる？"
-            class="text-h6"
-            maxlength="280"
-            devinid="26"
-          />
-        </q-card-section>
-
-        <q-card-actions align="right" class="q-pa-md">
-          <q-btn 
-            flat 
-            label="投稿する" 
-            color="primary" 
-            @click="createPost" 
-            :disable="!newPost.trim()" 
-            devinid="27"
-          />
-        </q-card-actions>
-      </q-card>
-    </q-dialog>
-
-    <!-- Main Content -->
-    <q-page-container class="bg-black">
-      <div class="row">
-        <div class="col-12 col-md-8 offset-md-3">
-          <q-header elevated class="bg-black q-py-sm">
-            <q-toolbar>
-              <q-toolbar-title class="text-h6">ホーム</q-toolbar-title>
-              <div v-if="!isAuthenticated">
-                <q-btn flat to="/login" label="ログイン" color="primary" />
-              </div>
-              <div v-else>
-                <q-btn flat @click="logout" label="ログアウト" color="negative" />
-              </div>
-            </q-toolbar>
-          </q-header>
-          <div class="q-pa-md">
-            <router-view />
-          </div>
-        </div>
-
-        <!-- Right Sidebar -->
-        <div class="col-md-3 gt-sm">
-          <div class="q-pa-md">
-            <q-card flat bordered class="bg-dark q-pa-md">
-              <div class="text-h6 q-mb-md">トレンド</div>
-              <q-list>
-                <q-item clickable v-ripple>
-                  <q-item-section>
-                    <q-item-label caption>日本のトレンド</q-item-label>
-                    <q-item-label class="text-weight-bold">#セキュリティ</q-item-label>
-                    <q-item-label caption>1,234 投稿</q-item-label>
-                  </q-item-section>
-                </q-item>
-                <q-item clickable v-ripple>
-                  <q-item-section>
-                    <q-item-label caption>テクノロジー</q-item-label>
-                    <q-item-label class="text-weight-bold">#脆弱性</q-item-label>
-                    <q-item-label caption>891 投稿</q-item-label>
-                  </q-item-section>
-                </q-item>
-              </q-list>
-            </q-card>
-          </div>
-        </div>
-      </div>
+    <q-page-container>
+      <router-view />
     </q-page-container>
   </q-layout>
 </template>
 
-<script setup lang="ts">
-import { ref } from 'vue'
-import { useAuthStore } from './stores/auth'
-import { usePostStore } from './stores/posts'
-import { storeToRefs } from 'pinia'
+<script setup>
+import { ref, computed } from 'vue'
+import { useRouter } from 'vue-router'
+import { useAuthStore } from '@/stores/auth'
+import { usePostsStore } from '@/stores/posts'
+import { useQuasar } from 'quasar'
 
-const leftDrawerOpen = ref(true)
-const showPostDialog = ref(false)
-const newPost = ref('')
-
+const $q = useQuasar()
+const router = useRouter()
 const authStore = useAuthStore()
-const postStore = usePostStore()
-const { isAuthenticated } = storeToRefs(authStore)
-const { logout } = authStore
+const postsStore = usePostsStore()
+const leftDrawerOpen = ref(false)
+const isLoggedIn = computed(() => authStore.isLoggedIn)
 
-const openPostDialog = () => {
-  showPostDialog.value = true
+const logout = () => {
+  authStore.logout()
+  router.push('/login')
+  if ($q.screen.lt.md) {
+    leftDrawerOpen.value = false
+  }
 }
 
-const createPost = async () => {
-  if (newPost.value.trim()) {
-    try {
-      await postStore.createPost(newPost.value)
-      newPost.value = ''
-      showPostDialog.value = false
-      await postStore.fetchPosts() // Refresh posts after creating
-    } catch (error) {
-      console.error('Failed to create post:', error)
+const searchHashtag = async (tag) => {
+  try {
+    await postsStore.searchByHashtag(tag)
+    router.push('/')
+    if ($q.screen.lt.md) {
+      leftDrawerOpen.value = false
     }
+  } catch (error) {
+    console.error('Failed to search hashtag:', error)
   }
 }
 </script>
 
 <style>
+body {
+  color: white;
+}
+
 .q-drawer {
-  border-color: #2F3336 !important;
-}
-
-.q-card {
-  border-color: #2F3336 !important;
-}
-
-.q-toolbar {
-  border-bottom: 1px solid #2F3336;
+  background-color: #15202b !important;
 }
 
 .q-item {
-  min-height: 56px;
+  color: white;
 }
 
-.q-item:hover {
-  background: rgba(255, 255, 255, 0.03);
+.q-item__label--header {
+  color: #8899a6;
 }
 
-.q-dialog__inner {
-  background: rgba(91, 112, 131, 0.4) !important;
+.q-item__label--caption {
+  color: #8899a6;
+}
+
+.q-separator {
+  background: #38444d;
+}
+
+.q-toolbar {
+  min-height: 48px;
+}
+
+.q-page-container {
+  background-color: #15202b;
+}
+
+/* Mobile-specific styles */
+@media (max-width: 1023px) {
+  .q-drawer {
+    width: 100% !important;
+    max-width: 280px !important;
+  }
 }
 </style>

@@ -3,8 +3,8 @@ package handlers
 import (
     "database/sql"
     "fmt"
+    "log"
     "net/http"
-    "strconv"
     "github.com/gin-gonic/gin"
     "github.com/ca-ssg/devin-vuln-app/backend/internal/models"
 )
@@ -20,14 +20,12 @@ func NewPostHandler(db *sql.DB) *PostHandler {
 }
 
 func (h *PostHandler) GetPosts(c *gin.Context) {
-    // Intentionally vulnerable SQL query for learning purposes
-    query := `
+    rows, err := h.db.Query(`
         SELECT p.id, p.user_id, p.content, p.created_at, p.updated_at,
-               (SELECT COUNT(*) FROM likes WHERE post_id = p.id) as likes_count
+               (SELECT COUNT(*) FROM likes WHERE post_id = p.id) as likes
         FROM posts p
         ORDER BY p.created_at DESC
-    `
-    rows, err := h.db.Query(query)
+    `)
     if err != nil {
         c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to fetch posts"})
         return
@@ -48,15 +46,22 @@ func (h *PostHandler) GetPosts(c *gin.Context) {
 }
 
 func (h *PostHandler) CreatePost(c *gin.Context) {
-    userID, _ := c.Get("user_id")
-    var req models.CreatePostRequest
-    if err := c.ShouldBindJSON(&req); err != nil {
-        c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+    userID := c.GetString("user_id")
+    if userID == "" {
+        c.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized"})
         return
     }
 
-    // Intentionally vulnerable SQL query for learning purposes
-    query := fmt.Sprintf("INSERT INTO posts (user_id, content) VALUES ('%s', '%s')", userID, req.Content)
+    var post models.Post
+    if err := c.BindJSON(&post); err != nil {
+        c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request body"})
+        return
+    }
+
+    // Intentionally vulnerable SQL query
+    query := fmt.Sprintf("INSERT INTO posts (user_id, content) VALUES ('%s', '%s')", userID, post.Content)
+    log.Printf("Executing query: %s", query)
+
     result, err := h.db.Exec(query)
     if err != nil {
         c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to create post"})
@@ -64,21 +69,39 @@ func (h *PostHandler) CreatePost(c *gin.Context) {
     }
 
     id, _ := result.LastInsertId()
-    c.JSON(http.StatusCreated, gin.H{"id": id, "message": "Post created successfully"})
+    post.ID = id
+    post.UserID = userID
+
+    c.JSON(http.StatusCreated, post)
 }
 
 func (h *PostHandler) UpdatePost(c *gin.Context) {
-    userID, _ := c.Get("user_id")
-    postID := c.Param("id")
-    var req models.UpdatePostRequest
-    if err := c.ShouldBindJSON(&req); err != nil {
-        c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+    userID := c.GetString("user_id")
+    if userID == "" {
+        c.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized"})
         return
     }
 
-    // Intentionally vulnerable SQL query for learning purposes
-    query := fmt.Sprintf("UPDATE posts SET content = '%s' WHERE id = %s AND user_id = '%s'", req.Content, postID, userID)
-    _, err := h.db.Exec(query)
+    postID := c.Param("id")
+    var post models.Post
+    if err := c.BindJSON(&post); err != nil {
+        c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request body"})
+        return
+    }
+
+    // Check if post exists and belongs to user
+    var postExists bool
+    err := h.db.QueryRow("SELECT EXISTS(SELECT 1 FROM posts WHERE id = ? AND user_id = ?)", postID, userID).Scan(&postExists)
+    if err != nil || !postExists {
+        c.JSON(http.StatusNotFound, gin.H{"error": "Post not found or unauthorized"})
+        return
+    }
+
+    // Intentionally vulnerable SQL query
+    query := fmt.Sprintf("UPDATE posts SET content = '%s' WHERE id = %s AND user_id = '%s'", post.Content, postID, userID)
+    log.Printf("Executing query: %s", query)
+
+    _, err = h.db.Exec(query)
     if err != nil {
         c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update post"})
         return
@@ -88,12 +111,27 @@ func (h *PostHandler) UpdatePost(c *gin.Context) {
 }
 
 func (h *PostHandler) DeletePost(c *gin.Context) {
-    userID, _ := c.Get("user_id")
+    userID := c.GetString("user_id")
+    if userID == "" {
+        c.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized"})
+        return
+    }
+
     postID := c.Param("id")
 
-    // Intentionally vulnerable SQL query for learning purposes
+    // Check if post exists and belongs to user
+    var postExists bool
+    err := h.db.QueryRow("SELECT EXISTS(SELECT 1 FROM posts WHERE id = ? AND user_id = ?)", postID, userID).Scan(&postExists)
+    if err != nil || !postExists {
+        c.JSON(http.StatusNotFound, gin.H{"error": "Post not found or unauthorized"})
+        return
+    }
+
+    // Intentionally vulnerable SQL query
     query := fmt.Sprintf("DELETE FROM posts WHERE id = %s AND user_id = '%s'", postID, userID)
-    _, err := h.db.Exec(query)
+    log.Printf("Executing query: %s", query)
+
+    _, err = h.db.Exec(query)
     if err != nil {
         c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to delete post"})
         return
@@ -103,35 +141,31 @@ func (h *PostHandler) DeletePost(c *gin.Context) {
 }
 
 func (h *PostHandler) LikePost(c *gin.Context) {
-    userID, _ := c.Get("user_id")
-    postID, err := strconv.Atoi(c.Param("id"))
-    if err != nil {
-        c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid post ID"})
+    userID := c.GetString("user_id")
+    if userID == "" {
+        c.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized"})
         return
     }
 
-    // Intentionally vulnerable SQL query for learning purposes
-    var exists bool
-    checkQuery := fmt.Sprintf("SELECT 1 FROM likes WHERE post_id = %d AND user_id = '%s'", postID, userID)
-    err = h.db.QueryRow(checkQuery).Scan(&exists)
-    
-    if err != nil {
-        // いいねが存在しない場合は追加
-        insertQuery := fmt.Sprintf("INSERT INTO likes (post_id, user_id) VALUES (%d, '%s')", postID, userID)
-        _, err = h.db.Exec(insertQuery)
-        if err != nil {
-            c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to like post"})
-            return
-        }
-        c.JSON(http.StatusOK, gin.H{"message": "Post liked successfully"})
-    } else {
-        // いいねが存在する場合は削除
-        deleteQuery := fmt.Sprintf("DELETE FROM likes WHERE post_id = %d AND user_id = '%s'", postID, userID)
-        _, err = h.db.Exec(deleteQuery)
-        if err != nil {
-            c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to unlike post"})
-            return
-        }
-        c.JSON(http.StatusOK, gin.H{"message": "Post unliked successfully"})
+    postID := c.Param("id")
+
+    // Check if post exists
+    var postExists bool
+    err := h.db.QueryRow("SELECT EXISTS(SELECT 1 FROM posts WHERE id = ?)", postID).Scan(&postExists)
+    if err != nil || !postExists {
+        c.JSON(http.StatusNotFound, gin.H{"error": "Post not found"})
+        return
     }
+
+    // Intentionally vulnerable SQL query
+    query := fmt.Sprintf("INSERT INTO likes (user_id, post_id) VALUES ('%s', %s)", userID, postID)
+    log.Printf("Executing query: %s", query)
+
+    _, err = h.db.Exec(query)
+    if err != nil {
+        c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to like post"})
+        return
+    }
+
+    c.JSON(http.StatusOK, gin.H{"message": "Post liked successfully"})
 }

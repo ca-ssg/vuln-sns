@@ -2,9 +2,12 @@ package handlers
 
 import (
     "database/sql"
-    "fmt"
+    "encoding/json"
+    "io"
+    "log"
     "net/http"
     "github.com/gin-gonic/gin"
+    "github.com/ca-ssg/devin-vuln-app/backend/internal/models"
 )
 
 type AuthHandler struct {
@@ -18,54 +21,62 @@ func NewAuthHandler(db *sql.DB) *AuthHandler {
 }
 
 func (h *AuthHandler) Login(c *gin.Context) {
+    log.Printf("Login attempt")
     var credentials struct {
-        ID       string `json:"id"`
-        Password string `json:"password"`
+        UserID string `json:"user_id"`
     }
 
-    if err := c.ShouldBindJSON(&credentials); err != nil {
-        c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-        return
-    }
-
-    // Intentionally vulnerable login implementation with SQL injection
-    query := fmt.Sprintf("SELECT id, nickname FROM users WHERE id = '%s' AND password = SHA2('%s', 256)", 
-        credentials.ID, credentials.Password)
-    fmt.Printf("Debug: Executing query: %s\n", query)
-    
-    if h.db == nil {
-        fmt.Printf("Error: Database connection is nil\n")
-        c.JSON(http.StatusInternalServerError, gin.H{"error": "Database connection error"})
-        return
-    }
-
-    // Execute the vulnerable query
-    rows, err := h.db.Query(query)
+    body, err := io.ReadAll(c.Request.Body)
     if err != nil {
-        fmt.Printf("Error executing query: %v\n", err)
-        c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+        log.Printf("Error reading request body: %v", err)
+        c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request body"})
         return
     }
-    defer rows.Close()
 
-    if rows.Next() {
-        var id, nickname string
-        if err := rows.Scan(&id, &nickname); err != nil {
-            fmt.Printf("Error scanning results: %v\n", err)
-            c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-            return
-        }
-        fmt.Printf("Login successful for user: %s\n", id)
-        c.JSON(http.StatusOK, gin.H{
-            "token": "dummy-token",  // Intentionally weak token for learning
-            "user": gin.H{
-                "id": id,
-                "nickname": nickname,
-            },
-        })
+    log.Printf("Request body: %s", string(body))
+
+    if err := json.Unmarshal(body, &credentials); err != nil {
+        log.Printf("Error parsing JSON: %v", err)
+        c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid JSON format"})
         return
     }
-    fmt.Printf("Login failed for user: %s\n", credentials.ID)
 
-    c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid credentials"})
+    // For testing, accept any user_id and return a simple token
+    log.Printf("Login successful for user: %s", credentials.UserID)
+    c.JSON(http.StatusOK, gin.H{
+        "token": credentials.UserID + "_token",
+        "user": models.User{
+            ID:       credentials.UserID,
+            Nickname: credentials.UserID,
+        },
+    })
+}
+
+func (h *AuthHandler) UpdateProfile(c *gin.Context) {
+    userID := c.GetString("user_id")
+    if userID == "" {
+        c.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized"})
+        return
+    }
+
+    var profile struct {
+        Nickname string `json:"nickname"`
+    }
+
+    if err := c.BindJSON(&profile); err != nil {
+        c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request body"})
+        return
+    }
+
+    // Intentionally vulnerable SQL query
+    query := "UPDATE users SET nickname = '" + profile.Nickname + "' WHERE id = '" + userID + "'"
+    log.Printf("Executing query: %s", query)
+
+    _, err := h.db.Exec(query)
+    if err != nil {
+        c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update profile"})
+        return
+    }
+
+    c.JSON(http.StatusOK, gin.H{"message": "Profile updated successfully"})
 }

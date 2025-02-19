@@ -57,8 +57,18 @@ docker-compose exec db mysql -u root -p
 
 ## データベースへの接続
 
-データベースへの接続には、環境変数を使用します。セキュリティのため、認証情報は環境変数として管理されています。
-詳細な設定方法については、docker-compose.yml の環境変数設定をご確認ください。
+データベースへの接続には以下のコマンドを使用します：
+
+```bash
+docker-compose exec db mysql -uroot -ppassword -Dvuln_app
+```
+
+認証情報:
+- ユーザー名: root
+- パスワード: password
+- データベース名: vuln_app
+
+※ローカル開発環境のため、簡易的な認証情報を使用しています。本番環境では適切なセキュリティ設定を行ってください。
 
 ## ⚠️ 脆弱性について
 
