@@ -2,6 +2,8 @@ package main
 
 import (
     "log"
+    "os"
+    "strings"
     "time"
     "github.com/gin-gonic/gin"
     "github.com/gin-contrib/cors"
@@ -12,9 +14,15 @@ import (
 func main() {
     r := gin.Default()
 
+    // Get allowed origins from environment variable
+    allowedOrigins := os.Getenv("ALLOWED_ORIGINS")
+    if allowedOrigins == "" {
+        allowedOrigins = "http://localhost:5173"
+    }
+
     // CORS configuration
     r.Use(cors.New(cors.Config{
-        AllowOrigins:     []string{"http://localhost:5173"},
+        AllowOrigins:     strings.Split(allowedOrigins, ","),
         AllowMethods:     []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
         AllowHeaders:     []string{"Origin", "Content-Type", "Authorization", "Accept"},
         AllowCredentials: true,
