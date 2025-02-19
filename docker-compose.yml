@@ -22,6 +22,7 @@ services:
     build: ./backend
     environment:
       MYSQL_DSN: root:password@tcp(db:3306)/vuln_app?parseTime=true&multiStatements=true
+      ALLOWED_ORIGINS: ${ALLOWED_ORIGINS:-http://localhost:5173}
     ports:
       - "9090:8080"
     depends_on:
@@ -37,6 +38,8 @@ services:
 
   frontend:
     build: ./frontend
+    environment:
+      VITE_API_URL: ${VITE_API_URL:-http://localhost:9090/api}
     ports:
       - "5173:5173"
     depends_on:
