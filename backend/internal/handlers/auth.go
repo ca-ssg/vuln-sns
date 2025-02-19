@@ -1,85 +1,60 @@
 package handlers
 
 import (
-	"crypto/sha256"
-	"encoding/hex"
-	"github.com/ca-ssg/devin-vuln-app/backend/internal/database"
-	"github.com/ca-ssg/devin-vuln-app/backend/internal/models"
-	"github.com/gin-gonic/gin"
-	"net/http"
+    "fmt"
+    "net/http"
+    "github.com/gin-gonic/gin"
+    "github.com/ca-ssg/devin-vuln-app/backend/internal/database"
 )
 
-type AuthHandler struct {
-	db *database.DB
-}
+func Login(c *gin.Context) {
+    var credentials struct {
+        ID       string `json:"id"`
+        Password string `json:"password"`
+    }
 
-func NewAuthHandler(db *database.DB) *AuthHandler {
-	return &AuthHandler{db: db}
-}
+    if err := c.ShouldBindJSON(&credentials); err != nil {
+        c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+        return
+    }
 
-func (h *AuthHandler) Login(c *gin.Context) {
-	var loginReq struct {
-		ID       string `json:"id"`
-		Password string `json:"password"`
-	}
+    // Intentionally vulnerable login implementation with SQL injection
+    query := fmt.Sprintf("SELECT id, nickname FROM users WHERE id = '%s' AND password = SHA2('%s', 256)", 
+        credentials.ID, credentials.Password)
+    fmt.Printf("Debug: Executing query: %s\n", query)
+    
+    if database.DB == nil {
+        fmt.Printf("Error: Database connection is nil\n")
+        c.JSON(http.StatusInternalServerError, gin.H{"error": "Database connection error"})
+        return
+    }
 
-	if err := c.BindJSON(&loginReq); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request"})
-		return
-	}
+    rows, err := database.DB.Query(query)
+    if err != nil {
+        fmt.Printf("Error executing query: %v\n", err)
+        c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+        return
+    }
+    defer rows.Close()
 
-	// Intentionally vulnerable to SQL injection
-	user, err := h.db.GetUser(loginReq.ID)
-	if err != nil {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid credentials"})
-		return
-	}
+    if rows.Next() {
+        var id, nickname string
+        if err := rows.Scan(&id, &nickname); err != nil {
+            fmt.Printf("Error scanning results: %v\n", err)
+            c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+            return
+        }
+        fmt.Printf("Login successful for user: %s\n", id)
+        c.JSON(http.StatusOK, gin.H{
+            "token": "dummy-token",  // Intentionally weak token for learning
+            "user": gin.H{
+                "id": id,
+                "nickname": nickname,
+            },
+        })
+        return
+    }
+    fmt.Printf("Login failed for user: %s\n", credentials.ID)
 
-	// Hash password for comparison
-	hash := sha256.Sum256([]byte(loginReq.Password))
-	hashedPassword := hex.EncodeToString(hash[:])
-
-	if user.Password != hashedPassword {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid credentials"})
-		return
-	}
-
-	// Generate token (intentionally simple and insecure)
-	token := user.ID + "_token"
-
-	c.JSON(http.StatusOK, gin.H{
-		"token": token,
-		"user": models.User{
-			ID: user.ID,
-		},
-	})
-}
-
-func (h *AuthHandler) Register(c *gin.Context) {
-	var registerReq struct {
-		ID       string `json:"id"`
-		Password string `json:"password"`
-	}
-
-	if err := c.BindJSON(&registerReq); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request"})
-		return
-	}
-
-	// Hash password
-	hash := sha256.Sum256([]byte(registerReq.Password))
-	hashedPassword := hex.EncodeToString(hash[:])
-
-	user := &models.User{
-		ID:       registerReq.ID,
-		Password: hashedPassword,
-	}
-
-	// Intentionally vulnerable to SQL injection
-	if err := h.db.CreateUser(user); err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to create user"})
-		return
-	}
-
-	c.JSON(http.StatusCreated, gin.H{"message": "User created successfully"})
+    c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid credentials"})
 }
