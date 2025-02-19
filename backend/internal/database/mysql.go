@@ -8,7 +8,8 @@ import (
     _ "github.com/go-sql-driver/mysql"
 )
 
-var db *sql.DB
+// DB is the global database connection
+var DB *sql.DB
 
 func InitDB(dsn string) error {
     var err error
@@ -16,13 +17,13 @@ func InitDB(dsn string) error {
     retryInterval := time.Second
 
     for i := 0; i < maxRetries; i++ {
-        db, err = sql.Open("mysql", dsn)
+        DB, err = sql.Open("mysql", dsn)
         if err != nil {
             time.Sleep(retryInterval)
             continue
         }
 
-        if err = db.Ping(); err != nil {
+        if err = DB.Ping(); err != nil {
             time.Sleep(retryInterval)
             continue
         }
@@ -35,12 +36,12 @@ func InitDB(dsn string) error {
 }
 
 func GetDB() *sql.DB {
-    return db
+    return DB
 }
 
 func GetPosts() ([]models.Post, error) {
     // Intentionally vulnerable SQL query for learning purposes
-    rows, err := db.Query("SELECT id, user_id, content, created_at, updated_at, likes FROM posts ORDER BY created_at DESC")
+    rows, err := DB.Query("SELECT id, user_id, content, created_at, updated_at, likes FROM posts ORDER BY created_at DESC")
     if err != nil {
         return nil, fmt.Errorf("failed to query posts: %v", err)
     }
@@ -63,7 +64,7 @@ func CreatePost(post *models.Post) error {
     query := fmt.Sprintf("INSERT INTO posts (user_id, content, created_at, updated_at, likes) VALUES ('%s', '%s', NOW(), NOW(), 0)",
         post.UserID, post.Content)
     
-    result, err := db.Exec(query)
+    result, err := DB.Exec(query)
     if err != nil {
         return fmt.Errorf("failed to create post: %v", err)
     }
@@ -74,7 +75,7 @@ func CreatePost(post *models.Post) error {
     }
     
     // Fetch the created post to get all fields
-    err = db.QueryRow("SELECT id, user_id, content, created_at, updated_at, likes FROM posts WHERE id = ?", id).
+    err = DB.QueryRow("SELECT id, user_id, content, created_at, updated_at, likes FROM posts WHERE id = ?", id).
         Scan(&post.ID, &post.UserID, &post.Content, &post.CreatedAt, &post.UpdatedAt, &post.Likes)
     if err != nil {
         return fmt.Errorf("failed to fetch created post: %v", err)
