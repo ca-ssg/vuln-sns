@@ -6,12 +6,12 @@ import (
 )
 
 func SeedData() error {
-    if db == nil {
+    if DB == nil {
         return nil
     }
 
     // Create initial user
-    _, err := db.Exec("INSERT IGNORE INTO users (id, password, nickname) VALUES (?, SHA2(?, 256), ?)", "alice", "alice", "Alice")
+    _, err := DB.Exec("INSERT IGNORE INTO users (id, password, nickname) VALUES (?, SHA2(?, 256), ?)", "alice", "alice", "Alice")
     if err != nil {
         log.Printf("Error seeding user: %v", err)
         return err
@@ -29,7 +29,7 @@ func SeedData() error {
 
     for _, p := range posts {
         now := time.Now()
-        _, err := db.Exec(
+        _, err := DB.Exec(
             "INSERT IGNORE INTO posts (user_id, content, created_at, updated_at, likes) VALUES (?, ?, ?, ?, ?)",
             p.userID, p.content, now, now, 0,
         )
