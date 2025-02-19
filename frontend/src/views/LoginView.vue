@@ -3,7 +3,7 @@
     <q-card flat bordered class="login-card bg-black q-pa-xl" style="width: 400px">
       <q-card-section class="text-center q-pb-xl">
         <i class="fas fa-feather text-primary text-h2 q-mb-md"></i>
-        <div class="text-h4 text-weight-bold q-mb-sm">VulnAppにログイン</div>
+        <div class="text-h4 text-weight-bold q-mb-sm">ログイン</div>
         <div class="text-grey-6">セキュリティの学習用アプリケーション</div>
       </q-card-section>
 
