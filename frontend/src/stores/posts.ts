@@ -15,7 +15,7 @@ export const usePostStore = defineStore('posts', () => {
 
   const fetchPosts = async () => {
     try {
-      const response = await fetch('http://localhost:9090/api/posts')
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/posts`)
       if (!response.ok) {
         throw new Error('Failed to fetch posts')
       }
@@ -30,7 +30,7 @@ export const usePostStore = defineStore('posts', () => {
       const token = localStorage.getItem('token')
       const user = JSON.parse(localStorage.getItem('user') || '{}')
       
-      const response = await fetch('http://localhost:9090/api/posts', {
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/posts`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -56,7 +56,7 @@ export const usePostStore = defineStore('posts', () => {
   const toggleLike = async (postId: number) => {
     try {
       const token = localStorage.getItem('token')
-      const response = await fetch(`http://localhost:9090/api/posts/${postId}/like`, {
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/posts/${postId}/like`, {
         method: 'POST',
         headers: {
           'Authorization': token || '',

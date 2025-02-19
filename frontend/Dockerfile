@@ -7,7 +7,7 @@ RUN npm install
 
 COPY . .
 
-ENV VITE_API_URL=http://localhost:8080/api
+# Environment variables are managed through docker-compose.yml
 ENV HOST=0.0.0.0
 
 EXPOSE 5173

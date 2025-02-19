@@ -29,7 +29,7 @@ export const useAuthStore = defineStore('auth', () => {
   const login = async (id: string, password: string): Promise<boolean> => {
     try {
       console.log('Attempting login with:', { id, password })
-      const response = await fetch('http://localhost:8080/api/login', {
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/login`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -69,11 +69,41 @@ export const useAuthStore = defineStore('auth', () => {
     localStorage.removeItem('user')
   }
 
+  const updateNickname = async (nickname: string): Promise<boolean> => {
+    try {
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/profile`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': token.value || '',
+        },
+        body: JSON.stringify({ nickname }),
+      })
+
+      if (!response.ok) {
+        console.error('Failed to update nickname:', await response.text())
+        return false
+      }
+
+      if (user.value) {
+        const updatedUser: User = { ...user.value, nickname }
+        user.value = updatedUser
+        localStorage.setItem('user', JSON.stringify(updatedUser))
+        return true
+      }
+      return false
+    } catch (error) {
+      console.error('Error updating nickname:', error)
+      return false
+    }
+  }
+
   return {
     token,
     user,
     isAuthenticated,
     login,
     logout,
+    updateNickname,
   }
 })
