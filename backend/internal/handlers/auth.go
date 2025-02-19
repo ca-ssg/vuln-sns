@@ -1,13 +1,23 @@
 package handlers
 
 import (
+    "database/sql"
     "fmt"
     "net/http"
     "github.com/gin-gonic/gin"
-    "github.com/ca-ssg/devin-vuln-app/backend/internal/database"
 )
 
-func Login(c *gin.Context) {
+type AuthHandler struct {
+    db *sql.DB
+}
+
+func NewAuthHandler(db *sql.DB) *AuthHandler {
+    return &AuthHandler{
+        db: db,
+    }
+}
+
+func (h *AuthHandler) Login(c *gin.Context) {
     var credentials struct {
         ID       string `json:"id"`
         Password string `json:"password"`
@@ -23,13 +33,14 @@ func Login(c *gin.Context) {
         credentials.ID, credentials.Password)
     fmt.Printf("Debug: Executing query: %s\n", query)
     
-    if database.DB == nil {
+    if h.db == nil {
         fmt.Printf("Error: Database connection is nil\n")
         c.JSON(http.StatusInternalServerError, gin.H{"error": "Database connection error"})
         return
     }
 
-    rows, err := database.DB.Query(query)
+    // Execute the vulnerable query
+    rows, err := h.db.Query(query)
     if err != nil {
         fmt.Printf("Error executing query: %v\n", err)
         c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
