@@ -10,3 +10,11 @@ type Post struct {
     UpdatedAt time.Time `json:"updatedAt" db:"updated_at"`
     Likes     int       `json:"likes" db:"likes"`
 }
+
+type CreatePostRequest struct {
+    Content string `json:"content"`
+}
+
+type UpdatePostRequest struct {
+    Content string `json:"content"`
+}
