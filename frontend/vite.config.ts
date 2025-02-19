@@ -10,7 +10,9 @@ export default defineConfig({
       template: { transformAssetUrls }
     }),
     vueJsx(),
-    quasar()
+    quasar({
+      sassVariables: './src/quasar-variables.scss'
+    })
   ],
   resolve: {
     alias: {

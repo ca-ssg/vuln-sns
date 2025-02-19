@@ -14,12 +14,12 @@
   },
   "dependencies": {
     "@fortawesome/fontawesome-free": "^6.7.2",
-    "@quasar/extras": "^1.16.9",
+    "@quasar/extras": "^1.16.17",
     "@vueuse/core": "^12.7.0",
     "axios": "^1.7.9",
     "pinia": "^3.0.1",
-    "quasar": "^2.14.3",
-    "sass": "^1.69.5",
+    "quasar": "^2.17.7",
+    "sass": "^1.32.12",
     "vue": "^3.5.13",
     "vue-router": "^4.5.0"
   },

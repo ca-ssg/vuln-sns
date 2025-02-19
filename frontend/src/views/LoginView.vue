@@ -16,6 +16,7 @@
               class="bg-black"
               outlined
               :rules="[val => !!val || 'IDを入力してください']"
+              devinid="12"
             >
               <template v-slot:prepend>
                 <q-icon name="fas fa-user" />
@@ -29,6 +30,7 @@
               class="bg-black"
               outlined
               :rules="[val => !!val || 'パスワードを入力してください']"
+              devinid="14"
             >
               <template v-slot:prepend>
                 <q-icon name="fas fa-lock" />
@@ -43,6 +45,7 @@
               class="full-width q-py-sm text-h6"
               label="ログイン"
               unelevated
+              devinid="15"
             />
           </div>
         </form>

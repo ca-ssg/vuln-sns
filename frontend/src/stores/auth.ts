@@ -28,12 +28,14 @@ export const useAuthStore = defineStore('auth', () => {
 
   const login = async (id: string, password: string): Promise<boolean> => {
     try {
-      const response = await fetch('http://localhost:9090/api/login', {
+      console.log('Attempting login with:', { id, password })
+      const response = await fetch('http://localhost:8080/api/login', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({ id, password }),
+        credentials: 'include'
       })
 
       if (!response.ok) {
