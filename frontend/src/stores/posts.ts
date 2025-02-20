@@ -25,10 +25,10 @@ export const usePostsStore = defineStore('posts', {
   }),
 
   actions: {
-    async fetchPosts() {
+    async fetchPosts(): Promise<void> {
       this.loading = true
       try {
-        const response = await axios.get(`${API_URL}/posts`)
+        const response = await axios.get<Post[]>(`${API_URL}/posts`)
         this.posts = response.data
       } catch (error) {
         console.error('Error fetching posts:', error)
@@ -38,10 +38,10 @@ export const usePostsStore = defineStore('posts', {
       }
     },
 
-    async createPost(content) {
+    async createPost(content: string): Promise<void> {
       this.loading = true
       try {
-        const response = await axios.post(`${API_URL}/posts`, { content })
+        const response = await axios.post<Post>(`${API_URL}/posts`, { content })
         this.posts.unshift(response.data)
       } catch (error) {
         console.error('Error creating post:', error)
@@ -51,7 +51,7 @@ export const usePostsStore = defineStore('posts', {
       }
     },
 
-    async updatePost(id, content) {
+    async updatePost(id: number, content: string): Promise<void> {
       this.loading = true
       try {
         await axios.put(`${API_URL}/posts/${id}`, { content })
@@ -67,7 +67,7 @@ export const usePostsStore = defineStore('posts', {
       }
     },
 
-    async deletePost(id) {
+    async deletePost(id: number): Promise<void> {
       this.loading = true
       try {
         await axios.delete(`${API_URL}/posts/${id}`)
@@ -80,7 +80,7 @@ export const usePostsStore = defineStore('posts', {
       }
     },
 
-    async likePost(id) {
+    async likePost(id: number): Promise<void> {
       try {
         await axios.post(`${API_URL}/posts/${id}/like`)
         const post = this.posts.find(p => p.id === id)
@@ -93,10 +93,10 @@ export const usePostsStore = defineStore('posts', {
       }
     },
 
-    async searchByHashtag(tag) {
+    async searchByHashtag(tag: string): Promise<void> {
       this.loading = true
       try {
-        const response = await axios.get(`${API_URL}/search`, {
+        const response = await axios.get<Post[]>(`${API_URL}/search`, {
           params: { tag }
         })
         this.posts = response.data || []
