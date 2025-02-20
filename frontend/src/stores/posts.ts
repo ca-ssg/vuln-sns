@@ -3,6 +3,14 @@ import axios from 'axios'
 
 const API_URL = import.meta.env.VITE_API_URL
 
+interface Post {
+  id: number
+  userId: string
+  content: string
+  createdAt: string
+  likes: number
+}
+
 export const usePostsStore = defineStore('posts', {
   state: () => ({
     posts: [],
