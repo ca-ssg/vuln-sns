@@ -10,9 +10,9 @@
           <div class="text-caption text-grey">{{ formattedDate }}</div>
         </div>
       </div>
-      <div class="q-mt-sm" v-html="post.content"></div>
+      <div class="q-mt-sm" v-html="post.content" @click="handleHashtagClick"></div>
       <div class="row q-mt-md">
-        <q-btn flat round :color="post.likes > 0 ? 'pink' : 'grey'" icon="far fa-heart" @click="likePost">
+        <q-btn flat round :color="post.isLiked ? 'pink' : 'grey'" icon="far fa-heart" @click="toggleLike">
           <div class="like-count q-ml-sm">{{ post.likes }}</div>
         </q-btn>
       </div>
@@ -23,7 +23,9 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import { usePostsStore } from '../stores/posts'
+import { useRouter } from 'vue-router'
 
+const router = useRouter()
 const props = defineProps<{
   post: {
     id: number
@@ -57,8 +59,25 @@ const formattedDate = computed(() => {
   }).format(date)
 })
 
-const likePost = () => {
-  postsStore.likePost(props.post.id)
+const toggleLike = async () => {
+  try {
+    if (props.post.isLiked) {
+      await postsStore.unlikePost(props.post.id)
+    } else {
+      await postsStore.likePost(props.post.id)
+    }
+  } catch (error) {
+    console.error('Error toggling like:', error)
+  }
+}
+
+const handleHashtagClick = (event: MouseEvent) => {
+  const target = event.target as HTMLElement
+  if (target.tagName === 'A' && target.textContent?.startsWith('#')) {
+    event.preventDefault()
+    const tag = target.textContent.slice(1)
+    router.push({ path: '/search', query: { tag } })
+  }
 }
 </script>
 

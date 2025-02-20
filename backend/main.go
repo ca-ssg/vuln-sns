@@ -99,6 +99,7 @@ func main() {
         protected.PUT("/posts/:id", postHandler.UpdatePost)
         protected.DELETE("/posts/:id", postHandler.DeletePost)
         protected.POST("/posts/:id/like", postHandler.LikePost)
+        protected.DELETE("/posts/:id/like", postHandler.UnlikePost)
         protected.PUT("/profile", authHandler.UpdateProfile)
     }
     log.Printf("Routes registered successfully")

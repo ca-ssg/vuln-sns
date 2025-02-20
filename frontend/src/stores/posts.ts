@@ -19,6 +19,7 @@ interface Post {
   content: string
   createdAt: string
   likes: number
+  isLiked: boolean
 }
 
 interface PostsState {
@@ -96,6 +97,7 @@ export const usePostsStore = defineStore('posts', {
         const post = this.posts.find(p => p.id === id)
         if (post) {
           post.likes++
+          post.isLiked = true
         }
       } catch (error) {
         console.error('Error liking post:', error)
@@ -115,6 +117,20 @@ export const usePostsStore = defineStore('posts', {
         this.error = 'Failed to search posts'
       } finally {
         this.loading = false
+      }
+    },
+
+    async unlikePost(id: number): Promise<void> {
+      try {
+        await axios.delete(`${API_URL}/posts/${id}/like`)
+        const post = this.posts.find(p => p.id === id)
+        if (post) {
+          post.likes--
+          post.isLiked = false
+        }
+      } catch (error) {
+        console.error('Error unliking post:', error)
+        this.error = 'Failed to unlike post'
       }
     }
   }
