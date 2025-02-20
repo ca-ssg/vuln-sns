@@ -7,8 +7,10 @@ const API_URL = import.meta.env.VITE_API_URL
 // Add auth header to all requests
 axios.interceptors.request.use(config => {
   const authStore = useAuthStore()
-  if (authStore.token) {
-    config.headers.Authorization = `Bearer ${authStore.token}`
+  if (authStore.token && authStore.user?.id) {
+    // Ensure token is in the correct format: either userID_token or just userID
+    const token = authStore.token.endsWith('_token') ? authStore.token : `${authStore.user.id}_token`
+    config.headers.Authorization = `Bearer ${token}`
   }
   return config
 })

@@ -52,10 +52,11 @@ export const useAuthStore = defineStore('auth', () => {
         return false
       }
 
-      // Store raw token without Bearer prefix
-      token.value = data.token
+      // Store token in userID_token format
+      const tokenValue = data.token.endsWith('_token') ? data.token : `${data.user.id}_token`
+      token.value = tokenValue
       user.value = data.user
-      localStorage.setItem('token', data.token)
+      localStorage.setItem('token', tokenValue)
       localStorage.setItem('user', JSON.stringify(data.user))
       return true
     } catch (error) {
