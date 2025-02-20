@@ -59,7 +59,9 @@ export const useAuthStore = defineStore('auth', () => {
       // Ensure token includes userID
       token.value = tokenValue.includes(data.user.id) ? tokenValue : `${data.user.id}_token`
       user.value = data.user
-      localStorage.setItem('token', token.value)
+      if (token.value) {
+        localStorage.setItem('token', token.value)
+      }
       localStorage.setItem('user', JSON.stringify(data.user))
       return true
     } catch (error) {

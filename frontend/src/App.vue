@@ -1,5 +1,5 @@
 <template>
-  <q-layout view="hHh LpR fFf" class="bg-black">
+  <q-layout view="hHh LpR lFf" class="bg-black">
     <!-- Header with mobile menu button -->
     <q-header elevated class="bg-black q-py-sm">
       <q-toolbar>
@@ -38,17 +38,6 @@
 
         <q-separator class="q-my-md" />
 
-        <q-item-label header>トレンド</q-item-label>
-        <q-item clickable v-ripple @click="searchHashtag(tag)" v-for="tag in ['セキュリティ', '脆弱性']" :key="tag">
-          <q-item-section>
-            <q-item-label caption>トレンド</q-item-label>
-            <q-item-label class="text-weight-bold">#{{ tag }}</q-item-label>
-            <q-item-label caption>{{ tag === 'セキュリティ' ? '1,234' : '891' }} 投稿</q-item-label>
-          </q-item-section>
-        </q-item>
-
-        <q-separator class="q-my-md" />
-
         <q-item v-if="!isLoggedIn" clickable v-ripple to="/login">
           <q-item-section>
             <q-item-label class="text-h6">ログイン</q-item-label>
@@ -63,13 +52,59 @@
       </q-list>
     </q-drawer>
 
-    <q-page-container>
-      <router-view />
+    <q-page-container class="row">
+      <div class="col-12 col-md-8">
+        <router-view />
+      </div>
+      <div class="col-md-4 gt-sm">
+        <q-card flat bordered class="bg-black q-mt-md trends-card" style="border-color: #2F3336">
+          <q-card-section>
+            <div class="text-h6">トレンド</div>
+            <q-list>
+              <q-item clickable v-ripple @click="searchHashtag(tag)" v-for="tag in ['セキュリティ', '脆弱性']" :key="tag">
+                <q-item-section>
+                  <q-item-label caption>トレンド</q-item-label>
+                  <q-item-label class="text-weight-bold">#{{ tag }}</q-item-label>
+                  <q-item-label caption>{{ tag === 'セキュリティ' ? '1,234' : '891' }} 投稿</q-item-label>
+                </q-item-section>
+              </q-item>
+            </q-list>
+          </q-card-section>
+        </q-card>
+      </div>
+
+      <!-- Mobile Trends Dialog -->
+      <q-dialog v-model="showTrends" position="bottom">
+        <q-card class="bg-black full-width" style="border-color: #2F3336">
+          <q-card-section>
+            <div class="text-h6">トレンド</div>
+            <q-list>
+              <q-item clickable v-ripple @click="searchHashtagMobile(tag)" v-for="tag in ['セキュリティ', '脆弱性']" :key="tag">
+                <q-item-section>
+                  <q-item-label caption>トレンド</q-item-label>
+                  <q-item-label class="text-weight-bold">#{{ tag }}</q-item-label>
+                  <q-item-label caption>{{ tag === 'セキュリティ' ? '1,234' : '891' }} 投稿</q-item-label>
+                </q-item-section>
+              </q-item>
+            </q-list>
+          </q-card-section>
+        </q-card>
+      </q-dialog>
+
+      <!-- Mobile Trends Button -->
+      <q-page-sticky position="bottom-right" :offset="[18, 18]" class="lt-md">
+        <q-btn
+          round
+          color="primary"
+          icon="trending_up"
+          @click="showTrends = true"
+        />
+      </q-page-sticky>
     </q-page-container>
   </q-layout>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { ref, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
@@ -81,7 +116,8 @@ const router = useRouter()
 const authStore = useAuthStore()
 const postsStore = usePostsStore()
 const leftDrawerOpen = ref(false)
-const isLoggedIn = computed(() => authStore.isLoggedIn)
+const showTrends = ref(false)
+const isLoggedIn = computed(() => authStore.isAuthenticated)
 
 const logout = () => {
   authStore.logout()
@@ -91,13 +127,23 @@ const logout = () => {
   }
 }
 
-const searchHashtag = async (tag) => {
+const searchHashtag = async (tag: string) => {
   try {
     await postsStore.searchByHashtag(tag)
     router.push('/')
     if ($q.screen.lt.md) {
       leftDrawerOpen.value = false
     }
+  } catch (error) {
+    console.error('Failed to search hashtag:', error)
+  }
+}
+
+const searchHashtagMobile = async (tag: string) => {
+  try {
+    await postsStore.searchByHashtag(tag)
+    router.push('/')
+    showTrends.value = false
   } catch (error) {
     console.error('Failed to search hashtag:', error)
   }
@@ -135,6 +181,19 @@ body {
 
 .q-page-container {
   background-color: #15202b;
+  padding: 16px;
+}
+
+.q-card {
+  border-radius: 16px;
+}
+
+.q-item {
+  border-radius: 8px;
+  margin: 4px 0;
+  &:hover {
+    background-color: rgba(255, 255, 255, 0.03);
+  }
 }
 
 /* Mobile-specific styles */
