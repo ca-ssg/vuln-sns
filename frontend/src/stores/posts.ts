@@ -4,6 +4,15 @@ import { useAuthStore } from './auth'
 
 const API_URL = import.meta.env.VITE_API_URL
 
+// Add auth header to all requests
+axios.interceptors.request.use(config => {
+  const authStore = useAuthStore()
+  if (authStore.token) {
+    config.headers.Authorization = `Bearer ${authStore.token}`
+  }
+  return config
+})
+
 interface Post {
   id: number
   userId: string
@@ -29,12 +38,7 @@ export const usePostsStore = defineStore('posts', {
     async fetchPosts(): Promise<void> {
       this.loading = true
       try {
-        const authStore = useAuthStore()
-        const response = await axios.get<Post[]>(`${API_URL}/posts`, {
-          headers: {
-            'Authorization': authStore.token || ''
-          }
-        })
+        const response = await axios.get<Post[]>(`${API_URL}/posts`)
         this.posts = response.data
       } catch (error) {
         console.error('Error fetching posts:', error)
@@ -47,12 +51,7 @@ export const usePostsStore = defineStore('posts', {
     async createPost(content: string): Promise<void> {
       this.loading = true
       try {
-        const authStore = useAuthStore()
-        const response = await axios.post<Post>(`${API_URL}/posts`, { content }, {
-          headers: {
-            'Authorization': authStore.token || ''
-          }
-        })
+        const response = await axios.post<Post>(`${API_URL}/posts`, { content })
         this.posts.unshift(response.data)
       } catch (error) {
         console.error('Error creating post:', error)
@@ -65,12 +64,7 @@ export const usePostsStore = defineStore('posts', {
     async updatePost(id: number, content: string): Promise<void> {
       this.loading = true
       try {
-        const authStore = useAuthStore()
-        await axios.put(`${API_URL}/posts/${id}`, { content }, {
-          headers: {
-            'Authorization': authStore.token || ''
-          }
-        })
+        await axios.put(`${API_URL}/posts/${id}`, { content })
         const index = this.posts.findIndex(post => post.id === id)
         if (index !== -1) {
           this.posts[index].content = content
@@ -86,12 +80,7 @@ export const usePostsStore = defineStore('posts', {
     async deletePost(id: number): Promise<void> {
       this.loading = true
       try {
-        const authStore = useAuthStore()
-        await axios.delete(`${API_URL}/posts/${id}`, {
-          headers: {
-            'Authorization': authStore.token || ''
-          }
-        })
+        await axios.delete(`${API_URL}/posts/${id}`)
         this.posts = this.posts.filter(post => post.id !== id)
       } catch (error) {
         console.error('Error deleting post:', error)
@@ -103,12 +92,7 @@ export const usePostsStore = defineStore('posts', {
 
     async likePost(id: number): Promise<void> {
       try {
-        const authStore = useAuthStore()
-        await axios.post(`${API_URL}/posts/${id}/like`, {}, {
-          headers: {
-            'Authorization': authStore.token || ''
-          }
-        })
+        await axios.post(`${API_URL}/posts/${id}/like`, {})
         const post = this.posts.find(p => p.id === id)
         if (post) {
           post.likes++
@@ -122,12 +106,8 @@ export const usePostsStore = defineStore('posts', {
     async searchByHashtag(tag: string): Promise<void> {
       this.loading = true
       try {
-        const authStore = useAuthStore()
         const response = await axios.get<Post[]>(`${API_URL}/search`, {
-          params: { tag },
-          headers: {
-            'Authorization': authStore.token || ''
-          }
+          params: { tag }
         })
         this.posts = response.data || []
       } catch (error) {

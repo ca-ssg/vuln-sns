@@ -15,8 +15,8 @@ export const useAuthStore = defineStore('auth', () => {
     const storedToken = localStorage.getItem('token')
     const storedUser = localStorage.getItem('user')
     if (storedToken && storedUser) {
-      // Ensure token has Bearer prefix
-      token.value = storedToken.startsWith('Bearer ') ? storedToken : `Bearer ${storedToken}`
+      // Remove Bearer prefix if present
+      token.value = storedToken.startsWith('Bearer ') ? storedToken.substring(7) : storedToken
       user.value = JSON.parse(storedUser)
     }
   } catch (e) {
@@ -52,11 +52,10 @@ export const useAuthStore = defineStore('auth', () => {
         return false
       }
 
-      // Store token with Bearer prefix for consistency
-      const bearerToken = `Bearer ${data.token}`
-      token.value = bearerToken
+      // Store raw token without Bearer prefix
+      token.value = data.token
       user.value = data.user
-      localStorage.setItem('token', bearerToken)
+      localStorage.setItem('token', data.token)
       localStorage.setItem('user', JSON.stringify(data.user))
       return true
     } catch (error) {
@@ -78,7 +77,7 @@ export const useAuthStore = defineStore('auth', () => {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': token.value || ''
+          'Authorization': `Bearer ${token.value || ''}`
         },
         body: JSON.stringify({ nickname }),
       })
