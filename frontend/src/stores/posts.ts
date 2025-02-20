@@ -1,5 +1,6 @@
 import { defineStore } from 'pinia'
 import axios from 'axios'
+import { useAuthStore } from './auth'
 
 const API_URL = import.meta.env.VITE_API_URL
 
@@ -82,7 +83,12 @@ export const usePostsStore = defineStore('posts', {
 
     async likePost(id: number): Promise<void> {
       try {
-        await axios.post(`${API_URL}/posts/${id}/like`)
+        const authStore = useAuthStore()
+        await axios.post(`${API_URL}/posts/${id}/like`, {}, {
+          headers: {
+            'Authorization': authStore.token || ''
+          }
+        })
         const post = this.posts.find(p => p.id === id)
         if (post) {
           post.likes++
