@@ -18,7 +18,7 @@ interface PostsState {
 }
 
 export const usePostsStore = defineStore('posts', {
-  state: () => ({
+  state: (): PostsState => ({
     posts: [],
     loading: false,
     error: null
