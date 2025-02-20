@@ -1,7 +1,17 @@
 import { defineStore } from 'pinia'
 import axios from 'axios'
+import { useAuthStore } from './auth'
 
 const API_URL = import.meta.env.VITE_API_URL
+
+// Add auth header to all requests
+axios.interceptors.request.use(config => {
+  const authStore = useAuthStore()
+  if (authStore.token) {
+    config.headers.Authorization = `Bearer ${authStore.token}`
+  }
+  return config
+})
 
 interface Post {
   id: number
@@ -82,7 +92,7 @@ export const usePostsStore = defineStore('posts', {
 
     async likePost(id: number): Promise<void> {
       try {
-        await axios.post(`${API_URL}/posts/${id}/like`)
+        await axios.post(`${API_URL}/posts/${id}/like`, {})
         const post = this.posts.find(p => p.id === id)
         if (post) {
           post.likes++
