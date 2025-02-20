@@ -12,7 +12,9 @@
       </div>
       <div class="q-mt-sm" v-html="post.content"></div>
       <div class="row q-mt-md">
-        <q-btn flat round :color="post.likes > 0 ? 'pink' : 'grey'" icon="far fa-heart" @click="likePost" />
+        <q-btn flat round :color="post.likes > 0 ? 'pink' : 'grey'" icon="far fa-heart" @click="likePost">
+          <div class="like-count q-ml-sm">{{ post.likes }}</div>
+        </q-btn>
       </div>
     </q-card-section>
   </q-card>
@@ -66,5 +68,11 @@ const likePost = () => {
 }
 .post-card:hover {
   background-color: rgba(255, 255, 255, 0.03);
+}
+.like-count {
+  font-size: 0.9rem;
+  color: inherit;
+  min-width: 1rem;
+  text-align: left;
 }
 </style>

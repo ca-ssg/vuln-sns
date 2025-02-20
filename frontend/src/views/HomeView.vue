@@ -17,11 +17,21 @@
 import { onMounted } from 'vue'
 import { usePostsStore } from '../stores/posts'
 import PostCard from '../components/PostCard.vue'
+import { useRoute } from 'vue-router'
+import { watch } from 'vue'
 
 const postsStore = usePostsStore()
+const route = useRoute()
 
 onMounted(async () => {
   await postsStore.fetchPosts()
+})
+
+// Refresh posts when returning to home
+watch(() => route.path, async (newPath) => {
+  if (newPath === '/') {
+    await postsStore.fetchPosts()
+  }
 })
 </script>
 
