@@ -57,7 +57,7 @@
         <router-view />
       </div>
       <div class="col-md-4 gt-sm">
-        <q-card flat bordered class="bg-black q-mt-md" style="border-color: #2F3336">
+        <q-card flat bordered class="bg-black q-mt-md trends-card" style="border-color: #2F3336">
           <q-card-section>
             <div class="text-h6">トレンド</div>
             <q-list>
@@ -72,6 +72,34 @@
           </q-card-section>
         </q-card>
       </div>
+
+      <!-- Mobile Trends Dialog -->
+      <q-dialog v-model="showTrends" position="bottom">
+        <q-card class="bg-black full-width" style="border-color: #2F3336">
+          <q-card-section>
+            <div class="text-h6">トレンド</div>
+            <q-list>
+              <q-item clickable v-ripple @click="searchHashtagMobile(tag)" v-for="tag in ['セキュリティ', '脆弱性']" :key="tag">
+                <q-item-section>
+                  <q-item-label caption>トレンド</q-item-label>
+                  <q-item-label class="text-weight-bold">#{{ tag }}</q-item-label>
+                  <q-item-label caption>{{ tag === 'セキュリティ' ? '1,234' : '891' }} 投稿</q-item-label>
+                </q-item-section>
+              </q-item>
+            </q-list>
+          </q-card-section>
+        </q-card>
+      </q-dialog>
+
+      <!-- Mobile Trends Button -->
+      <q-page-sticky position="bottom-right" :offset="[18, 18]" class="lt-md">
+        <q-btn
+          round
+          color="primary"
+          icon="trending_up"
+          @click="showTrends = true"
+        />
+      </q-page-sticky>
     </q-page-container>
   </q-layout>
 </template>
@@ -88,6 +116,7 @@ const router = useRouter()
 const authStore = useAuthStore()
 const postsStore = usePostsStore()
 const leftDrawerOpen = ref(false)
+const showTrends = ref(false)
 const isLoggedIn = computed(() => authStore.isAuthenticated)
 
 const logout = () => {
@@ -105,6 +134,16 @@ const searchHashtag = async (tag: string) => {
     if ($q.screen.lt.md) {
       leftDrawerOpen.value = false
     }
+  } catch (error) {
+    console.error('Failed to search hashtag:', error)
+  }
+}
+
+const searchHashtagMobile = async (tag: string) => {
+  try {
+    await postsStore.searchByHashtag(tag)
+    router.push('/')
+    showTrends.value = false
   } catch (error) {
     console.error('Failed to search hashtag:', error)
   }
