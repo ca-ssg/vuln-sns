@@ -67,8 +67,10 @@ const updateProfile = async () => {
 
   loading.value = true
   try {
-    await authStore.updateProfile(newNickname.value)
-    showEditDialog.value = false
+    const success = await authStore.updateNickname(newNickname.value)
+    if (success) {
+      showEditDialog.value = false
+    }
   } catch (error) {
     console.error('Failed to update profile:', error)
   } finally {
