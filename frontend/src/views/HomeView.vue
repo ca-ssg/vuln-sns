@@ -13,7 +13,7 @@
   </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { onMounted } from 'vue'
 import { usePostsStore } from '../stores/posts'
 import PostCard from '../components/PostCard.vue'
@@ -29,5 +29,6 @@ onMounted(async () => {
 .home-container {
   max-width: 600px;
   margin: 0 auto;
+  padding: 0 16px;
 }
 </style>
