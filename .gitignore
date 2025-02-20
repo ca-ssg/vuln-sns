@@ -2,7 +2,6 @@
 # Environment files
 .env
 *.env
-docker-compose.yml
 
 # Logs
 *.log
