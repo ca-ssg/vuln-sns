@@ -56,9 +56,7 @@
 <script setup>
 import { ref } from 'vue'
 import { useAuthStore } from '@/stores/auth'
-import axios from 'axios'
 
-const API_URL = import.meta.env.VITE_API_URL
 const authStore = useAuthStore()
 const showEditDialog = ref(false)
 const newNickname = ref('')
@@ -69,14 +67,7 @@ const updateProfile = async () => {
 
   loading.value = true
   try {
-    await axios.put(`${API_URL}/profile`, {
-      nickname: newNickname.value
-    }, {
-      headers: {
-        'Authorization': `Bearer ${authStore.user?.id}`
-      }
-    })
-    authStore.user.nickname = newNickname.value
+    await authStore.updateProfile(newNickname.value)
     showEditDialog.value = false
   } catch (error) {
     console.error('Failed to update profile:', error)

@@ -13,7 +13,6 @@
       <div class="q-mt-sm" v-html="post.content"></div>
       <div class="row q-mt-md justify-between">
         <q-btn flat round color="grey" icon="far fa-comment" />
-        <q-btn flat round color="grey" icon="fas fa-retweet" />
         <q-btn flat round :color="post.likes > 0 ? 'pink' : 'grey'" icon="far fa-heart" @click="likePost" />
         <q-btn flat round color="grey" icon="fas fa-share" />
       </div>
@@ -59,7 +58,7 @@ const formattedDate = computed(() => {
 })
 
 const likePost = () => {
-  postsStore.toggleLike(props.post.id)
+  postsStore.likePost(props.post.id)
 }
 </script>
 
