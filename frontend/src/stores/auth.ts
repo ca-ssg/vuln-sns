@@ -54,11 +54,12 @@ export const useAuthStore = defineStore('auth', () => {
         return false
       }
 
-      // Ensure token is in userID_token format
-      const cleanToken = data.token.endsWith('_token') ? data.token : `${data.user.id}_token`
-      token.value = cleanToken
+      // Store token in userID_token format
+      const tokenValue = data.token.endsWith('_token') ? data.token : `${data.user.id}_token`
+      // Ensure token includes userID
+      token.value = tokenValue.includes(data.user.id) ? tokenValue : `${data.user.id}_token`
       user.value = data.user
-      localStorage.setItem('token', cleanToken)
+      localStorage.setItem('token', token.value)
       localStorage.setItem('user', JSON.stringify(data.user))
       return true
     } catch (error) {
