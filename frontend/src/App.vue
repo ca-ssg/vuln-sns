@@ -127,26 +127,16 @@ const logout = () => {
   }
 }
 
-const searchHashtag = async (tag: string) => {
-  try {
-    await postsStore.searchByHashtag(tag)
-    router.push('/')
-    if ($q.screen.lt.md) {
-      leftDrawerOpen.value = false
-    }
-  } catch (error) {
-    console.error('Failed to search hashtag:', error)
+const searchHashtag = (tag: string) => {
+  router.push({ path: '/search', query: { tag } })
+  if ($q.screen.lt.md) {
+    leftDrawerOpen.value = false
   }
 }
 
-const searchHashtagMobile = async (tag: string) => {
-  try {
-    await postsStore.searchByHashtag(tag)
-    router.push('/')
-    showTrends.value = false
-  } catch (error) {
-    console.error('Failed to search hashtag:', error)
-  }
+const searchHashtagMobile = (tag: string) => {
+  router.push({ path: '/search', query: { tag } })
+  showTrends.value = false
 }
 </script>
 
