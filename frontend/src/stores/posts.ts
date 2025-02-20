@@ -11,6 +11,12 @@ interface Post {
   likes: number
 }
 
+interface PostsState {
+  posts: Post[]
+  loading: boolean
+  error: string | null
+}
+
 export const usePostsStore = defineStore('posts', {
   state: () => ({
     posts: [],
