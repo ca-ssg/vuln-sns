@@ -1,0 +1,71 @@
+/* Import Quasar styles */
+@import 'quasar/dist/quasar.css';
+
+/* Custom styles */
+:root {
+  --q-primary: #1DA1F2;
+  --q-secondary: #657786;
+  --q-accent: #F91880;
+  --q-dark: #000000;
+}
+
+body {
+  background-color: var(--q-dark);
+  color: #ffffff;
+}
+
+.q-field__native {
+  color: #ffffff !important;
+}
+
+.q-field__control {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.q-card {
+  background: #15202B;
+}
+
+:root {
+  --color-bg: #000000;
+  --color-text: #ffffff;
+  --color-border: #2F3336;
+  --color-primary: #1DA1F2;
+  --color-secondary: #657786;
+}
+
+body {
+  @apply bg-black text-white;
+}
+
+.btn-primary {
+  @apply px-4 py-2 bg-[#1DA1F2] text-white rounded-full hover:bg-blue-600 transition-colors;
+}
+
+.btn-secondary {
+  @apply px-4 py-2 bg-gray-800 text-gray-300 rounded-full hover:bg-gray-700 transition-colors;
+}
+
+.input-field {
+  @apply block w-full px-4 py-2 rounded-lg bg-gray-900 border border-[#2F3336] text-white shadow-sm focus:border-[#1DA1F2] focus:ring-[#1DA1F2];
+}
+
+.nav-link {
+  @apply text-gray-300 hover:text-white transition-colors;
+}
+
+.card {
+  @apply bg-gray-900 border border-[#2F3336] rounded-lg p-4;
+}
+
+.interaction-button {
+  @apply flex items-center space-x-2 text-[#657786] hover:text-[#1DA1F2] transition-colors;
+}
+
+.avatar {
+  @apply rounded-full border border-[#2F3336];
+}
+
+.post-card {
+  @apply border-b border-[#2F3336] p-4 hover:bg-gray-900/50 transition-colors;
+}

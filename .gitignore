@@ -1,0 +1,11 @@
+
+# Environment files
+.env
+*.env
+
+# Logs
+*.log
+
+# IDE files
+.idea/
+.vscode/
