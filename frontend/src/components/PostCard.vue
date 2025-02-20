@@ -23,7 +23,7 @@
 
 <script setup lang="ts">
 import { computed } from 'vue'
-import { usePostStore } from '../stores/posts'
+import { usePostsStore } from '../stores/posts'
 
 const props = defineProps<{
   post: {
@@ -35,7 +35,7 @@ const props = defineProps<{
   }
 }>()
 
-const postStore = usePostStore()
+const postsStore = usePostsStore()
 
 const formattedDate = computed(() => {
   const date = new Date(props.post.createdAt)
@@ -59,7 +59,7 @@ const formattedDate = computed(() => {
 })
 
 const likePost = () => {
-  postStore.toggleLike(props.post.id)
+  postsStore.toggleLike(props.post.id)
 }
 </script>
 
