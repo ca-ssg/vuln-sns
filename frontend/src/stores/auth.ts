@@ -15,9 +15,11 @@ export const useAuthStore = defineStore('auth', () => {
     const storedToken = localStorage.getItem('token')
     const storedUser = localStorage.getItem('user')
     if (storedToken && storedUser) {
-      // Remove Bearer prefix if present
-      token.value = storedToken.startsWith('Bearer ') ? storedToken.substring(7) : storedToken
-      user.value = JSON.parse(storedUser)
+      const parsedUser = JSON.parse(storedUser)
+      // Ensure token has userID and proper format
+      const cleanToken = storedToken.startsWith('Bearer ') ? storedToken.substring(7) : storedToken
+      token.value = cleanToken.includes(parsedUser.id) ? cleanToken : `${parsedUser.id}_token`
+      user.value = parsedUser
     }
   } catch (e) {
     console.error('Failed to parse stored user:', e)
@@ -52,12 +54,11 @@ export const useAuthStore = defineStore('auth', () => {
         return false
       }
 
-      // Store token in userID_token format
-      const tokenValue = data.token.endsWith('_token') ? data.token : `${data.user.id}_token`
-      // Ensure token includes userID
-      token.value = tokenValue.includes(data.user.id) ? tokenValue : `${data.user.id}_token`
+      // Ensure token is in userID_token format
+      const cleanToken = data.token.endsWith('_token') ? data.token : `${data.user.id}_token`
+      token.value = cleanToken
       user.value = data.user
-      localStorage.setItem('token', token.value)
+      localStorage.setItem('token', cleanToken)
       localStorage.setItem('user', JSON.stringify(data.user))
       return true
     } catch (error) {
