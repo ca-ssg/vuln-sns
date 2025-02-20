@@ -75,7 +75,7 @@ export const useAuthStore = defineStore('auth', () => {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': token.value || '',
+          'Authorization': `Bearer ${token.value || ''}`
         },
         body: JSON.stringify({ nickname }),
       })

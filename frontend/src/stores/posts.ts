@@ -86,7 +86,7 @@ export const usePostsStore = defineStore('posts', {
         const authStore = useAuthStore()
         await axios.post(`${API_URL}/posts/${id}/like`, {}, {
           headers: {
-            'Authorization': authStore.token || ''
+            'Authorization': `Bearer ${authStore.token || ''}`
           }
         })
         const post = this.posts.find(p => p.id === id)
