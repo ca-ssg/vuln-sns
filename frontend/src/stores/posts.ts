@@ -99,7 +99,15 @@ export const usePostsStore = defineStore('posts', {
           post.likes++
           post.isLiked = true
         }
-      } catch (error) {
+      } catch (error: any) {
+        if (error.response?.status === 409) {
+          // Post is already liked, silently ignore
+          const post = this.posts.find(p => p.id === id)
+          if (post) {
+            post.isLiked = true
+          }
+          return
+        }
         console.error('Error liking post:', error)
         this.error = 'Failed to like post'
       }

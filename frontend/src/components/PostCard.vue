@@ -68,6 +68,7 @@ const toggleLike = async () => {
     }
   } catch (error) {
     console.error('Error toggling like:', error)
+    // Error is already handled by the store, no need to show UI error
   }
 }
 
