@@ -14,22 +14,13 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted, watch } from 'vue'
+import { watch } from 'vue'
 import { usePostsStore } from '../stores/posts'
-import { useRoute, useRouter } from 'vue-router'
+import { useRoute } from 'vue-router'
 import PostCard from '../components/PostCard.vue'
-
-const props = defineProps<{
-  tag?: string
-}>()
 
 const postsStore = usePostsStore()
 const route = useRoute()
-const router = useRouter()
-
-const handleHashtagClick = (tag: string) => {
-  router.push({ path: '/search', query: { tag: tag.slice(1) } })
-}
 
 // Watch for route query changes to update posts
 watch(() => route.query.tag, async (newTag) => {
@@ -54,6 +45,8 @@ watch(() => route.query.tag, async (newTag) => {
 .home-container {
   max-width: 600px;
   margin: 0 auto;
-  padding: 0 16px;
+  padding: 0;
+  border-left: 1px solid #2F3336;
+  border-right: 1px solid #2F3336;
 }
 </style>

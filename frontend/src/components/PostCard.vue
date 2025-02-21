@@ -1,5 +1,5 @@
 <template>
-  <q-card flat bordered class="post-card q-mb-md bg-black" style="border-color: #2F3336">
+  <q-card flat bordered class="post-card q-mb-md bg-black">
     <q-card-section>
       <div class="row items-center">
         <q-avatar size="40px" class="q-mr-md">
@@ -85,12 +85,16 @@ const handleHashtagClick = (event: MouseEvent) => {
 <style scoped>
 .post-card {
   transition: background-color 0.2s;
+  border-color: #2F3336;
+  padding: 12px 16px;
 }
+
 .post-card:hover {
   background-color: rgba(255, 255, 255, 0.03);
 }
+
 .like-count {
-  font-size: 0.9rem;
+  font-size: 0.875rem;
   color: inherit;
   min-width: 1rem;
   text-align: left;

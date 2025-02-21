@@ -1,10 +1,12 @@
 <template>
   <q-layout view="hHh LpR lFf" class="bg-black">
     <!-- Header with mobile menu button -->
-    <q-header elevated class="bg-black q-py-sm">
-      <q-toolbar>
+    <q-header elevated class="bg-black q-py-none" style="border-bottom: 1px solid #2F3336">
+      <q-toolbar style="min-height: 53px">
         <q-btn dense flat round icon="menu" @click="leftDrawerOpen = !leftDrawerOpen" class="lt-md" />
-        <q-toolbar-title class="text-h6">ホーム</q-toolbar-title>
+        <q-toolbar-title class="text-h6" style="font-size: 20px; color: var(--q-text)">
+          ホーム
+        </q-toolbar-title>
       </q-toolbar>
     </q-header>
 
@@ -108,13 +110,13 @@
 import { ref, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
-import { usePostsStore } from '@/stores/posts'
+
 import { useQuasar } from 'quasar'
 
 const $q = useQuasar()
 const router = useRouter()
 const authStore = useAuthStore()
-const postsStore = usePostsStore()
+
 const leftDrawerOpen = ref(false)
 const showTrends = ref(false)
 const isLoggedIn = computed(() => authStore.isAuthenticated)
@@ -146,23 +148,25 @@ body {
 }
 
 .q-drawer {
-  background-color: #15202b !important;
+  background-color: #000000 !important;
 }
 
 .q-item {
-  color: white;
+  color: var(--q-text);
+  padding: 12px 16px;
+  min-height: 50px;
 }
 
 .q-item__label--header {
-  color: #8899a6;
+  color: #71767B;
 }
 
 .q-item__label--caption {
-  color: #8899a6;
+  color: #71767B;
 }
 
 .q-separator {
-  background: #38444d;
+  background: #2F3336;
 }
 
 .q-toolbar {
@@ -170,8 +174,8 @@ body {
 }
 
 .q-page-container {
-  background-color: #15202b;
-  padding: 16px;
+  background-color: #000000;
+  padding: 0;
 }
 
 .q-card {
