@@ -29,48 +29,12 @@
           </q-item-section>
         </q-item>
 
-        <q-item clickable v-ripple>
+        <q-item clickable v-ripple to="/search">
           <q-item-section avatar>
             <q-icon name="search" size="md" />
           </q-item-section>
           <q-item-section>
             <q-item-label>話題を検索</q-item-label>
-          </q-item-section>
-        </q-item>
-
-        <q-item :clickable="false">
-          <q-item-section avatar>
-            <q-icon name="notifications" size="md" />
-          </q-item-section>
-          <q-item-section>
-            <q-item-label>通知</q-item-label>
-          </q-item-section>
-        </q-item>
-
-        <q-item :clickable="false">
-          <q-item-section avatar>
-            <q-icon name="mail" size="md" />
-          </q-item-section>
-          <q-item-section>
-            <q-item-label>メッセージ</q-item-label>
-          </q-item-section>
-        </q-item>
-
-        <q-item :clickable="false">
-          <q-item-section avatar>
-            <q-icon name="list" size="md" />
-          </q-item-section>
-          <q-item-section>
-            <q-item-label>リスト</q-item-label>
-          </q-item-section>
-        </q-item>
-
-        <q-item :clickable="false">
-          <q-item-section avatar>
-            <q-icon name="bookmark" size="md" />
-          </q-item-section>
-          <q-item-section>
-            <q-item-label>ブックマーク</q-item-label>
           </q-item-section>
         </q-item>
 
