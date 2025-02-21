@@ -44,7 +44,7 @@ export const useAuthStore = defineStore('auth', () => {
   const login = async (id: string, password: string): Promise<boolean> => {
     try {
       console.log('Attempting login with:', { id, password })
-      const response = await axiosInstance.post('/login', { user_id: id, password })
+      const response = await axiosInstance.post('/api/login', { user_id: id, password })
 
       const data = response.data
       console.log('Login response:', data)
