@@ -26,18 +26,9 @@ func (h *AuthHandler) Login(c *gin.Context) {
         UserID string `json:"user_id"`
     }
 
-    body, err := io.ReadAll(c.Request.Body)
-    if err != nil {
-        log.Printf("Error reading request body: %v", err)
-        c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request body"})
-        return
-    }
-
-    log.Printf("Request body: %s", string(body))
-
-    if err := json.Unmarshal(body, &credentials); err != nil {
-        log.Printf("Error parsing JSON: %v", err)
-        c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid JSON format"})
+    if err := c.BindJSON(&credentials); err != nil {
+        log.Printf("Error binding JSON: %v", err)
+        c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request format"})
         return
     }
 
