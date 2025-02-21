@@ -40,6 +40,10 @@ export const useAuthStore = defineStore('auth', () => {
         {
           headers: {
             'Content-Type': 'application/json'
+          },
+          auth: {
+            username: 'user',
+            password: '3d0b26c76947dc404912e2110babeac0'
           }
         })
 
