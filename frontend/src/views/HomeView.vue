@@ -14,15 +14,40 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted } from 'vue'
+import { onMounted, watch } from 'vue'
 import { usePostsStore } from '../stores/posts'
+import { useRoute, useRouter } from 'vue-router'
 import PostCard from '../components/PostCard.vue'
 
-const postsStore = usePostsStore()
+const props = defineProps<{
+  tag?: string
+}>()
 
-onMounted(async () => {
-  await postsStore.fetchPosts()
-})
+const postsStore = usePostsStore()
+const route = useRoute()
+const router = useRouter()
+
+const handleHashtagClick = (tag: string) => {
+  router.push({ path: '/search', query: { tag: tag.slice(1) } })
+}
+
+// Watch for route query changes to update posts
+watch(() => route.query.tag, async (newTag) => {
+  if (newTag) {
+    await postsStore.searchByHashtag(newTag as string)
+  } else {
+    await postsStore.fetchPosts()
+  }
+}, { immediate: true })
+
+// Watch for route query changes to update posts
+watch(() => route.query.tag, async (newTag) => {
+  if (newTag) {
+    await postsStore.searchByHashtag(newTag as string)
+  } else {
+    await postsStore.fetchPosts()
+  }
+}, { immediate: true })
 </script>
 
 <style scoped>

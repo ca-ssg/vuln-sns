@@ -31,13 +31,15 @@ func (h *SearchHandler) SearchByHashtag(c *gin.Context) {
     log.Printf("Searching for hashtag: %s", hashtag)
 
     // Intentionally vulnerable SQL query for learning purposes
+    userID := c.GetString("user_id")
     query := fmt.Sprintf(`
         SELECT p.id, p.user_id, p.content, p.created_at, p.updated_at,
-               (SELECT COUNT(*) FROM likes WHERE post_id = p.id) as likes
+               (SELECT COUNT(*) FROM likes WHERE post_id = p.id) as likes,
+               EXISTS(SELECT 1 FROM likes WHERE post_id = p.id AND user_id = '%s') as is_liked
         FROM posts p
         WHERE p.content LIKE '%%%s%%'
         ORDER BY p.created_at DESC
-    `, hashtag)
+    `, userID, hashtag)
 
     log.Printf("Executing search query: %s", query)
     rows, err := h.db.Query(query)
@@ -51,7 +53,7 @@ func (h *SearchHandler) SearchByHashtag(c *gin.Context) {
     var posts []models.Post
     for rows.Next() {
         var post models.Post
-        err := rows.Scan(&post.ID, &post.UserID, &post.Content, &post.CreatedAt, &post.UpdatedAt, &post.Likes)
+        err := rows.Scan(&post.ID, &post.UserID, &post.Content, &post.CreatedAt, &post.UpdatedAt, &post.Likes, &post.IsLiked)
         if err != nil {
             log.Printf("Error scanning post: %v", err)
             continue
