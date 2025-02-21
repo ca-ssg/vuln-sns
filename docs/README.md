@@ -1,10 +1,10 @@
-# セキュリティ脆弱性ドキュメント
+# Security Vulnerability Documentation
 
-このディレクトリには、学習目的で意図的に実装された脆弱性の説明が含まれています。
+This directory contains documentation for intentionally implemented vulnerabilities for learning purposes.
 
-## 脆弱性一覧
-- [認証トークンの露出](./認証-トークン露出.md)
-- [SQLインジェクション（プロフィール更新）](./インジェクション-プロフィール更新.md)
+## Vulnerability List
+- [Authentication Token Exposure](./auth-token-exposure.md)
+- [SQL Injection (Profile Update)](./injection-profile-update.md)
 
-## 注意事項
-これらの脆弱性は学習目的で意図的に実装されています。本番環境での使用は避けてください。
+## Important Note
+These vulnerabilities are intentionally implemented for learning purposes. Do not use in production environments.
