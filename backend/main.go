@@ -4,7 +4,9 @@ import (
     "database/sql"
     "log"
     "os"
+    "strings"
     "time"
+    
     "github.com/gin-gonic/gin"
     "github.com/gin-contrib/cors"
     _ "github.com/go-sql-driver/mysql"
@@ -28,12 +30,15 @@ func main() {
     // Get allowed origins from environment variable
     allowedOrigins := os.Getenv("ALLOWED_ORIGINS")
     if allowedOrigins == "" {
-        allowedOrigins = "https://twitter-clone-app-56dhic2m.devinapps.com"
+        allowedOrigins = "http://localhost:5173,http://localhost:5174"
     }
+
+    // Split allowed origins into slice
+    origins := strings.Split(allowedOrigins, ",")
 
     // CORS configuration - Apply before route registration
     r.Use(cors.New(cors.Config{
-        AllowOrigins:     []string{allowedOrigins},
+        AllowOrigins:     origins,
         AllowMethods:     []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
         AllowHeaders:     []string{"Origin", "Content-Type", "Authorization", "Accept", "X-Requested-With"},
         AllowCredentials: true,

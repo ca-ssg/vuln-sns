@@ -21,7 +21,8 @@ func NewAuthHandler(db *sql.DB) *AuthHandler {
 func (h *AuthHandler) Login(c *gin.Context) {
     log.Printf("Login attempt")
     var credentials struct {
-        UserID string `json:"user_id"`
+        UserID   string `json:"user_id"`
+        Password string `json:"password"`
     }
 
     if err := c.BindJSON(&credentials); err != nil {
