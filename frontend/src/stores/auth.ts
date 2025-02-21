@@ -39,11 +39,8 @@ export const useAuthStore = defineStore('auth', () => {
         { user_id: id, password },
         {
           headers: {
-            'Content-Type': 'application/json'
-          },
-          auth: {
-            username: 'user',
-            password: '3d0b26c76947dc404912e2110babeac0'
+            'Content-Type': 'application/json',
+            'Authorization': 'Basic ' + btoa('user:3d0b26c76947dc404912e2110babeac0')
           }
         })
 
