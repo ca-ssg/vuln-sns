@@ -4,6 +4,7 @@ import axios from 'axios'
 
 const axiosInstance = axios.create({
   baseURL: import.meta.env.VITE_API_URL,
+  withCredentials: true,
   headers: {
     'Content-Type': 'application/json',
     'Authorization': 'Basic ' + btoa('user:3d0b26c76947dc404912e2110babeac0')
