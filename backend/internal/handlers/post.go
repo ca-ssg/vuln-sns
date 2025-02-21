@@ -5,6 +5,7 @@ import (
     "fmt"
     "log"
     "net/http"
+    "strings"
     "github.com/gin-gonic/gin"
     "github.com/ca-ssg/devin-vuln-app/backend/internal/models"
 )
@@ -151,27 +152,25 @@ func (h *PostHandler) LikePost(c *gin.Context) {
 
     postID := c.Param("id")
 
-    // Check if post exists and not already liked
-    var postExists, alreadyLiked bool
+    // Check if post exists
+    var postExists bool
     err := h.db.QueryRow("SELECT EXISTS(SELECT 1 FROM posts WHERE id = ?)", postID).Scan(&postExists)
     if err != nil || !postExists {
         c.JSON(http.StatusNotFound, gin.H{"error": "Post not found"})
         return
     }
 
-    err = h.db.QueryRow("SELECT EXISTS(SELECT 1 FROM likes WHERE post_id = ? AND user_id = ?)", postID, userID).Scan(&alreadyLiked)
-    if err != nil {
-        c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to check like status"})
-        return
-    }
-
-    if alreadyLiked {
-        c.JSON(http.StatusConflict, gin.H{"error": "Post already liked"})
-        return
-    }
-
-    // Insert like
+    // Insert like, handle duplicate gracefully
     _, err = h.db.Exec("INSERT INTO likes (user_id, post_id) VALUES (?, ?)", userID, postID)
+    if err != nil {
+        if strings.Contains(err.Error(), "Duplicate entry") {
+            // Post is already liked, return success
+            c.JSON(http.StatusOK, gin.H{"message": "Post already liked"})
+            return
+        }
+        c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to like post"})
+        return
+    }
     if err != nil {
         c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to like post"})
         return
