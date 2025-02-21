@@ -31,13 +31,23 @@ const handleHashtagClick = (tag: string) => {
   router.push({ path: '/search', query: { tag: tag.slice(1) } })
 }
 
-onMounted(async () => {
-  if (props.tag) {
-    await postsStore.searchByHashtag(props.tag)
+// Watch for route query changes to update posts
+watch(() => route.query.tag, async (newTag) => {
+  if (newTag) {
+    await postsStore.searchByHashtag(newTag as string)
   } else {
     await postsStore.fetchPosts()
   }
-})
+}, { immediate: true })
+
+// Watch for route query changes to update posts
+watch(() => route.query.tag, async (newTag) => {
+  if (newTag) {
+    await postsStore.searchByHashtag(newTag as string)
+  } else {
+    await postsStore.fetchPosts()
+  }
+}, { immediate: true })
 </script>
 
 <style scoped>

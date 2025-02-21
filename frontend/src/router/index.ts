@@ -15,7 +15,9 @@ const router = createRouter({
       path: '/search',
       name: 'search',
       component: HomeView,
-      props: route => ({ tag: route.query.tag })
+      props: (route) => ({ 
+        tag: route.query.tag as string 
+      })
     },
     {
       path: '/login',
