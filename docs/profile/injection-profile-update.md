@@ -1,103 +1,103 @@
-# SQL Injection (Profile Update)
+# SQLインジェクション（プロフィール更新）
 
-This application intentionally includes security vulnerabilities for learning purposes:
+このアプリケーションは学習目的で意図的にセキュリティ脆弱性を含んでいます：
 
-## Overview
-SQL injection vulnerability exists in the profile update function:
+## 概要
+プロフィール更新機能にSQLインジェクションの脆弱性が存在します：
 ```go
 query := "UPDATE users SET nickname = '" + profile.Nickname + "' WHERE id = '" + userID + "'"
 ```
 
-## Learning Objectives
-1. Understanding SQL injection mechanisms
-2. Understanding the importance of parameterized queries
-3. Learning proper input sanitization methods
+## 学習目的
+1. SQLインジェクションのメカニズムの理解
+2. パラメータ化クエリの重要性の理解
+3. 適切な入力サニタイズ方法の学習
 
-## Implementation Location
-- `backend/internal/handlers/auth.go` UpdateProfile method
+## 実装箇所
+- `backend/internal/handlers/auth.go` UpdateProfileメソッド
 
-## Mitigation Methods
-For production environments, the following measures are necessary:
+## 対策方法
+本番環境では以下の対策が必要：
 
-### 1. Use Parameterized Queries
+### 1. パラメータ化クエリの使用
 ```go
-// Before
+// 修正前
 query := "UPDATE users SET nickname = '" + profile.Nickname + "' WHERE id = '" + userID + "'"
 _, err := h.db.Exec(query)
 
-// After
+// 修正後
 query := "UPDATE users SET nickname = ? WHERE id = ?"
 _, err := h.db.Exec(query, profile.Nickname, userID)
 ```
 
-### 2. Input Validation
+### 2. 入力値のバリデーション
 ```go
-// Before
+// 修正前
 if err := c.BindJSON(&profile); err != nil {
     c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request body"})
     return
 }
 
-// After
+// 修正後
 if err := c.BindJSON(&profile); err != nil {
     c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request body"})
     return
 }
 
-// Validate nickname length and characters
+// ニックネームの長さと文字種のバリデーション
 if len(profile.Nickname) > 50 || !validateNickname(profile.Nickname) {
     c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid nickname format"})
     return
 }
 
 func validateNickname(nickname string) bool {
-    // Define allowed characters with regex
+    // 許可する文字をregexで定義
     pattern := "^[a-zA-Z0-9_-]{1,50}$"
     match, _ := regexp.MatchString(pattern, nickname)
     return match
 }
 ```
 
-### 3. Input Sanitization
+### 3. 入力値のサニタイズ
 ```go
-// Before
-// No sanitization
+// 修正前
+// サニタイズなし
 
-// After
+// 修正後
 import (
     "html"
     "strings"
 )
 
 func sanitizeInput(input string) string {
-    // HTML escape
+    // HTMLエスケープ
     escaped := html.EscapeString(input)
-    // Remove special characters
+    // 特殊文字の除去
     escaped = strings.ReplaceAll(escaped, "'", "")
     escaped = strings.ReplaceAll(escaped, "\"", "")
     return escaped
 }
 
-// Usage
+// 使用例
 profile.Nickname = sanitizeInput(profile.Nickname)
 ```
 
-### 4. Improved Error Handling
+### 4. エラーハンドリングの改善
 ```go
-// Before
+// 修正前
 if err != nil {
     c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update profile"})
     return
 }
 
-// After
+// 修正後
 if err != nil {
     if strings.Contains(err.Error(), "Duplicate entry") {
-        c.JSON(http.StatusConflict, gin.H{"error": "Nickname already exists"})
+        c.JSON(http.StatusConflict, gin.H{"error": "ニックネームが既に使用されています"})
         return
     }
     log.Printf("Error updating profile: %v", err)
-    c.JSON(http.StatusInternalServerError, gin.H{"error": "Internal server error"})
+    c.JSON(http.StatusInternalServerError, gin.H{"error": "内部エラーが発生しました"})
     return
 }
 ```
