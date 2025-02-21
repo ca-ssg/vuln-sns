@@ -2,6 +2,14 @@ import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
 import axios from 'axios'
 
+const axiosInstance = axios.create({
+  baseURL: import.meta.env.VITE_API_URL,
+  headers: {
+    'Content-Type': 'application/json',
+    'Authorization': 'Basic ' + btoa('user:3d0b26c76947dc404912e2110babeac0')
+  }
+})
+
 const API_URL = import.meta.env.VITE_API_URL
 
 interface User {
@@ -35,14 +43,7 @@ export const useAuthStore = defineStore('auth', () => {
   const login = async (id: string, password: string): Promise<boolean> => {
     try {
       console.log('Attempting login with:', { id, password })
-      const response = await axios.post(`${API_URL}/login`, 
-        { user_id: id, password },
-        {
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': 'Basic ' + btoa('user:3d0b26c76947dc404912e2110babeac0')
-          }
-        })
+      const response = await axiosInstance.post('/login', { user_id: id, password })
 
       const data = response.data
       console.log('Login response:', data)
