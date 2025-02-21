@@ -19,10 +19,16 @@ func main() {
     r := gin.Default()
     log.Printf("Initializing Gin router...")
 
+    // Get port from environment variable
+    port := os.Getenv("PORT")
+    if port == "" {
+        port = "8080"
+    }
+
     // Get allowed origins from environment variable
     allowedOrigins := os.Getenv("ALLOWED_ORIGINS")
     if allowedOrigins == "" {
-        allowedOrigins = "*" // Allow all origins in sandbox
+        allowedOrigins = "https://twitter-clone-app-56dhic2m.devinapps.com"
     }
 
     // CORS configuration - Apply before route registration
