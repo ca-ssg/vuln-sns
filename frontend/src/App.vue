@@ -40,15 +40,29 @@
 
         <q-separator class="q-my-md" />
 
-        <q-item v-if="!isLoggedIn" clickable v-ripple to="/login">
-          <q-item-section>
-            <q-item-label class="text-h6">ログイン</q-item-label>
+        <q-item clickable v-ripple>
+          <q-item-section avatar>
+            <q-avatar>
+              <img :src="'https://ui-avatars.com/api/?name=' + (isLoggedIn ? authStore.user?.id : 'guest')" />
+            </q-avatar>
           </q-item-section>
-        </q-item>
-
-        <q-item v-else clickable v-ripple @click="logout">
           <q-item-section>
-            <q-item-label class="text-h6">ログアウト</q-item-label>
+            <q-item-label>{{ isLoggedIn ? authStore.user?.id : 'ゲスト' }}</q-item-label>
+          </q-item-section>
+          <q-item-section side>
+            <q-btn flat round>
+              <q-menu anchor="bottom right" self="top right">
+                <q-list style="min-width: 200px">
+                  <q-item v-if="!isLoggedIn" clickable v-ripple to="/login">
+                    <q-item-section>ログイン</q-item-section>
+                  </q-item>
+                  <q-item v-else clickable v-ripple @click="logout">
+                    <q-item-section>ログアウト</q-item-section>
+                  </q-item>
+                </q-list>
+              </q-menu>
+              <q-icon name="more_vert" />
+            </q-btn>
           </q-item-section>
         </q-item>
       </q-list>
