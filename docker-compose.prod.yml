@@ -31,6 +31,18 @@ services:
         condition: service_healthy
     restart: always
 
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    ports:
+      - "5173:80"
+    environment:
+      - VITE_API_URL=https://twitter-clone-app-tunnel-1cxj9n6i.devinapps.com/api
+    depends_on:
+      - backend
+    restart: always
+
 volumes:
   mysql_data:
     driver: local
