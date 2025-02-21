@@ -2,8 +2,6 @@ package handlers
 
 import (
     "database/sql"
-    "encoding/json"
-    "io"
     "log"
     "net/http"
     "github.com/gin-gonic/gin"
