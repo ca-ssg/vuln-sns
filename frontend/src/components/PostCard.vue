@@ -1,6 +1,6 @@
 <template>
-  <q-card flat bordered class="post-card q-mb-md bg-black">
-    <q-card-section>
+  <div class="post-card q-mb-md bg-black">
+    <div class="q-pa-md">
       <div class="row items-center">
         <q-avatar size="40px" class="q-mr-md">
           <img :src="'https://ui-avatars.com/api/?name=' + post.userId" />
@@ -16,8 +16,8 @@
           <div class="like-count q-ml-sm">{{ post.likes }}</div>
         </q-btn>
       </div>
-    </q-card-section>
-  </q-card>
+    </div>
+  </div>
 </template>
 
 <script setup lang="ts">
@@ -86,12 +86,12 @@ const handleHashtagClick = (event: MouseEvent) => {
 <style scoped>
 .post-card {
   transition: background-color 0.2s;
-  border-color: #2F3336;
-  padding: 12px 16px;
+  border-bottom: 1px solid #2F3336;
 }
 
 .post-card:hover {
   background-color: rgba(255, 255, 255, 0.03);
+  cursor: pointer;
 }
 
 .like-count {
