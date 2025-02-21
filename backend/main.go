@@ -34,10 +34,10 @@ func main() {
     // CORS configuration - Apply before route registration
     r.Use(cors.New(cors.Config{
         AllowOrigins:     []string{allowedOrigins},
-        AllowMethods:     []string{"GET", "POST", "PUT", "DELETE"},
-        AllowHeaders:     []string{"Origin", "Content-Type", "Authorization"},
+        AllowMethods:     []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
+        AllowHeaders:     []string{"Origin", "Content-Type", "Authorization", "Accept", "X-Requested-With"},
         AllowCredentials: true,
-        ExposeHeaders:    []string{"Content-Length"},
+        ExposeHeaders:    []string{"Content-Length", "Content-Type", "Authorization"},
         MaxAge:           12 * time.Hour,
     }))
 
