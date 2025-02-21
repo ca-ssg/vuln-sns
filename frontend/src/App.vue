@@ -1,10 +1,10 @@
 <template>
   <q-layout view="hHh LpR lFf" class="bg-black">
     <!-- Header with mobile menu button -->
-    <q-header elevated class="bg-black q-py-none" style="border-bottom: 1px solid #2F3336">
-      <q-toolbar style="min-height: 53px">
+    <q-header class="bg-black" style="border-bottom: 1px solid #2F3336">
+      <q-toolbar style="min-height: 53px; padding: 0 16px;">
         <q-btn dense flat round icon="menu" @click="leftDrawerOpen = !leftDrawerOpen" class="lt-md" />
-        <q-toolbar-title class="text-h6" style="font-size: 20px; color: var(--q-text)">
+        <q-toolbar-title class="text-weight-bold" style="font-size: 20px;">
           ホーム
         </q-toolbar-title>
       </q-toolbar>
@@ -59,9 +59,9 @@
         <router-view />
       </div>
       <div class="col-md-4 gt-sm">
-        <q-card flat bordered class="bg-black q-mt-md trends-card" style="border-color: #2F3336">
-          <q-card-section>
-            <div class="text-h6">トレンド</div>
+        <div class="bg-black q-mt-md trends-section" style="border-left: 1px solid #2F3336">
+          <div class="q-pa-md">
+            <div class="text-h6 q-mb-md">トレンド</div>
             <q-list>
               <q-item clickable v-ripple @click="searchHashtag(tag)" v-for="tag in ['セキュリティ', '脆弱性']" :key="tag">
                 <q-item-section>
@@ -71,15 +71,15 @@
                 </q-item-section>
               </q-item>
             </q-list>
-          </q-card-section>
-        </q-card>
+          </div>
+        </div>
       </div>
 
       <!-- Mobile Trends Dialog -->
       <q-dialog v-model="showTrends" position="bottom">
-        <q-card class="bg-black full-width" style="border-color: #2F3336">
-          <q-card-section>
-            <div class="text-h6">トレンド</div>
+        <div class="bg-black full-width">
+          <div class="q-pa-md">
+            <div class="text-h6 q-mb-md">トレンド</div>
             <q-list>
               <q-item clickable v-ripple @click="searchHashtagMobile(tag)" v-for="tag in ['セキュリティ', '脆弱性']" :key="tag">
                 <q-item-section>
@@ -89,8 +89,8 @@
                 </q-item-section>
               </q-item>
             </q-list>
-          </q-card-section>
-        </q-card>
+          </div>
+        </div>
       </q-dialog>
 
       <!-- Mobile Trends Button -->
@@ -179,15 +179,19 @@ body {
 }
 
 .q-card {
-  border-radius: 16px;
+  border-radius: 0;
 }
 
 .q-item {
-  border-radius: 8px;
-  margin: 4px 0;
+  border-radius: 0;
+  margin: 0;
   &:hover {
     background-color: rgba(255, 255, 255, 0.03);
   }
+}
+
+.q-drawer {
+  border-right: 1px solid #2F3336 !important;
 }
 
 /* Mobile-specific styles */
