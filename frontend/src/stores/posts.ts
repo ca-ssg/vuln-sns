@@ -93,21 +93,16 @@ export const usePostsStore = defineStore('posts', {
 
     async likePost(id: number): Promise<void> {
       try {
-        await axios.post(`${API_URL}/posts/${id}/like`, {})
+        const response = await axios.post(`${API_URL}/posts/${id}/like`, {})
         const post = this.posts.find(p => p.id === id)
         if (post) {
-          post.likes++
+          // Only increment likes if this is a new like (not a duplicate)
+          if (response.status === 200 && !post.isLiked) {
+            post.likes++
+          }
           post.isLiked = true
         }
-      } catch (error: any) {
-        if (error.response?.status === 409) {
-          // Post is already liked, silently ignore
-          const post = this.posts.find(p => p.id === id)
-          if (post) {
-            post.isLiked = true
-          }
-          return
-        }
+      } catch (error) {
         console.error('Error liking post:', error)
         this.error = 'Failed to like post'
       }
@@ -132,7 +127,7 @@ export const usePostsStore = defineStore('posts', {
       try {
         await axios.delete(`${API_URL}/posts/${id}/like`)
         const post = this.posts.find(p => p.id === id)
-        if (post) {
+        if (post && post.isLiked) {
           post.likes--
           post.isLiked = false
         }
