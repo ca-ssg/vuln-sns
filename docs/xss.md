@@ -32,7 +32,78 @@ XSSは、Webアプリケーションにスクリプトを注入できる脆弱�
 2. プロフィールページを表示し、アラートが表示されることを確認
 
 ## 対策方法
-1. 入力値のサニタイズ
-2. エスケープ処理の実施
-3. Content Security Policyの設定
-4. v-htmlの使用を避け、v-textやテンプレート構文を使用
+
+### 1. v-htmlの代わりにv-textを使用
+```vue
+<!-- 修正前（脆弱なコード） -->
+<template>
+  <div v-html="post.content"></div>
+</template>
+
+<!-- 修正後（安全なコード） -->
+<template>
+  <div v-text="post.content"></div>
+</template>
+```
+
+### 2. エスケープ処理の実施
+```javascript
+// ユーティリティ関数の作成
+function escapeHtml(text) {
+  return text
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#039;");
+}
+
+// コンポーネントでの使用
+export default {
+  computed: {
+    safeContent() {
+      return escapeHtml(this.post.content);
+    }
+  }
+}
+```
+
+### 3. Content Security Policyの設定
+```javascript
+// nuxt.config.js または vue.config.js
+module.exports = {
+  head: {
+    meta: [
+      {
+        hid: 'Content-Security-Policy',
+        httpEquiv: 'Content-Security-Policy',
+        content: "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline';"
+      }
+    ]
+  }
+}
+```
+
+### 4. マークダウンやリッチテキストの安全な表示
+```vue
+<template>
+  <div>
+    <!-- マークダウンライブラリを使用した安全な表示 -->
+    <markdown-it-vue :content="post.content" :options="markdownOptions"/>
+  </div>
+</template>
+
+<script>
+export default {
+  data() {
+    return {
+      markdownOptions: {
+        html: false, // HTMLタグの無効化
+        linkify: true, // URLの自動リンク化
+        breaks: true // 改行の有効化
+      }
+    }
+  }
+}
+</script>
+```

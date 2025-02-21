@@ -73,12 +73,6 @@ docker-compose exec db mysql -uroot -ppassword -Dvuln_app
 ## ⚠️ 脆弱性について
 
 このアプリケーションには学習目的で意図的に脆弱性が実装されています。
-脆弱性の詳細と確認手順については、以下のドキュメントを参照してください：
-
-- [SQLインジェクション](docs/sql-injection.md)
-- [クロスサイトスクリプティング（XSS）](docs/xss.md)
-- [クロスサイトリクエストフォージェリ（CSRF）](docs/csrf.md)
-- [アクセス制御の不備](docs/access-control.md)
-- [セッション管理の不備](docs/session-management.md)
+脆弱性の詳細と確認手順については、[脆弱性の概要](docs/vulnerabilities.md)を参照してください。
 
 **注意**: このアプリケーションは学習目的で作成されています。本番環境での使用や、実際のサービスへの攻撃に使用することは絶対に避けてください。
