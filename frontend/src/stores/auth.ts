@@ -2,7 +2,7 @@ import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
 import axios from 'axios'
 
-const axiosInstance = axios.create({
+export const axiosInstance = axios.create({
   baseURL: import.meta.env.VITE_API_URL + '/api',
   withCredentials: true,
   headers: {
@@ -10,8 +10,6 @@ const axiosInstance = axios.create({
     'Authorization': 'Basic ' + btoa('user:3d0b26c76947dc404912e2110babeac0')
   }
 })
-
-const API_URL = import.meta.env.VITE_API_URL
 
 interface User {
   id: string
@@ -44,7 +42,7 @@ export const useAuthStore = defineStore('auth', () => {
   const login = async (id: string, password: string): Promise<boolean> => {
     try {
       console.log('Attempting login with:', { id, password })
-      const response = await axiosInstance.post('/api/login', { user_id: id, password })
+      const response = await axiosInstance.post('/login', { user_id: id, password })
 
       const data = response.data
       console.log('Login response:', data)
@@ -79,14 +77,7 @@ export const useAuthStore = defineStore('auth', () => {
 
   const updateNickname = async (nickname: string): Promise<boolean> => {
     try {
-      const response = await axios.put(`${API_URL}/profile`, 
-        { nickname },
-        {
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${token.value || ''}`
-          }
-        })
+      const response = await axiosInstance.put('/profile', { nickname })
 
       const data = response.data
 
