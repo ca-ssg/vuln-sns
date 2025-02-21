@@ -108,11 +108,6 @@ func main() {
         protected.PUT("/profile", authHandler.UpdateProfile)
     }
     log.Printf("Routes registered successfully")
-
-    port := os.Getenv("PORT")
-    if port == "" {
-        port = "8080"
-    }
     log.Printf("Starting server on port %s", port)
     log.Fatal(r.Run(":" + port))
 }
