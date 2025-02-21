@@ -4,7 +4,6 @@ import (
     "database/sql"
     "log"
     "os"
-    "strings"
     "time"
     "github.com/gin-gonic/gin"
     "github.com/gin-contrib/cors"
@@ -23,14 +22,14 @@ func main() {
     // Get allowed origins from environment variable
     allowedOrigins := os.Getenv("ALLOWED_ORIGINS")
     if allowedOrigins == "" {
-        allowedOrigins = "http://localhost:5173"
+        allowedOrigins = "*" // Allow all origins in sandbox
     }
 
     // CORS configuration - Apply before route registration
     r.Use(cors.New(cors.Config{
-        AllowOrigins:     strings.Split(allowedOrigins, ","),
-        AllowMethods:     []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
-        AllowHeaders:     []string{"Origin", "Content-Type", "Authorization", "Accept"},
+        AllowOrigins:     []string{allowedOrigins},
+        AllowMethods:     []string{"GET", "POST", "PUT", "DELETE"},
+        AllowHeaders:     []string{"Origin", "Content-Type", "Authorization"},
         AllowCredentials: true,
         ExposeHeaders:    []string{"Content-Length"},
         MaxAge:           12 * time.Hour,

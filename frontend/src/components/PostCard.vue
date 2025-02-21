@@ -33,6 +33,7 @@ const props = defineProps<{
     content: string
     createdAt: string
     likes: number
+    isLiked?: boolean
   }
 }>()
 
