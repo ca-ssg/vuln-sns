@@ -1,13 +1,22 @@
 # 脆弱性の概要
 
-このアプリケーションには、セキュリティ学習を目的として意図的に以下の脆弱性が実装されています。各脆弱性の詳細な説明と確認手順については、それぞれのリンク先をご参照ください。
+このアプリケーションには、セキュリティ学習を目的として意図的に以下の脆弱性が実装されています。
 
-## 実装されている脆弱性一覧
+## 認証機能の脆弱性
+- [ログイン機能のSQLインジェクション](auth/sqli-login.md)
+- [セッション管理の不備](auth/session-management.md)
 
-- [SQLインジェクション](sql-injection.md)
-- [クロスサイトスクリプティング（XSS）](xss.md)
-- [クロスサイトリクエストフォージェリ（CSRF）](csrf.md)
-- [セッション管理の不備](session-management.md)
-- [アクセス制御の不備](access-control.md)
+## 投稿機能の脆弱性
+- [投稿機能のSQLインジェクション](post/sqli-post.md)
+- [投稿表示機能のXSS](post/xss-post.md)
+- [いいね機能のCSRF](post/csrf-like.md)
+
+## プロフィール機能の脆弱性
+- [プロフィール機能のSQLインジェクション](profile/sqli-profile.md)
+- [プロフィール表示機能のXSS](profile/xss-profile.md)
+- [プロフィール更新機能のCSRF](profile/csrf-profile.md)
+
+## 検索機能の脆弱性
+- [検索機能のSQLインジェクション](search/sqli-search.md)
 
 **注意**: このアプリケーションは学習目的で作成されています。本番環境での使用や、実際のサービスへの攻撃に使用することは絶対に避けてください。
