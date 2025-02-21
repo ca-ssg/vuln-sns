@@ -151,19 +151,27 @@ func (h *PostHandler) LikePost(c *gin.Context) {
 
     postID := c.Param("id")
 
-    // Check if post exists
-    var postExists bool
+    // Check if post exists and not already liked
+    var postExists, alreadyLiked bool
     err := h.db.QueryRow("SELECT EXISTS(SELECT 1 FROM posts WHERE id = ?)", postID).Scan(&postExists)
     if err != nil || !postExists {
         c.JSON(http.StatusNotFound, gin.H{"error": "Post not found"})
         return
     }
 
-    // Intentionally vulnerable SQL query
-    query := fmt.Sprintf("INSERT INTO likes (user_id, post_id) VALUES ('%s', %s)", userID, postID)
-    log.Printf("Executing query: %s", query)
+    err = h.db.QueryRow("SELECT EXISTS(SELECT 1 FROM likes WHERE post_id = ? AND user_id = ?)", postID, userID).Scan(&alreadyLiked)
+    if err != nil {
+        c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to check like status"})
+        return
+    }
 
-    _, err = h.db.Exec(query)
+    if alreadyLiked {
+        c.JSON(http.StatusConflict, gin.H{"error": "Post already liked"})
+        return
+    }
+
+    // Insert like
+    _, err = h.db.Exec("INSERT INTO likes (user_id, post_id) VALUES (?, ?)", userID, postID)
     if err != nil {
         c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to like post"})
         return
