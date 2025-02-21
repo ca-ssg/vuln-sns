@@ -6,9 +6,17 @@ export const axiosInstance = axios.create({
   baseURL: import.meta.env.VITE_API_URL,
   withCredentials: true,
   headers: {
-    'Content-Type': 'application/json',
-    'Authorization': 'Basic ' + btoa('user:3d0b26c76947dc404912e2110babeac0')
+    'Content-Type': 'application/json'
   }
+})
+
+// Add auth header to all requests
+axiosInstance.interceptors.request.use(config => {
+  const storedToken = localStorage.getItem('token')
+  if (storedToken) {
+    config.headers.Authorization = `Bearer ${storedToken}`
+  }
+  return config
 })
 
 interface User {
@@ -26,9 +34,7 @@ export const useAuthStore = defineStore('auth', () => {
     const storedUser = localStorage.getItem('user')
     if (storedToken && storedUser) {
       const parsedUser = JSON.parse(storedUser)
-      // Ensure token has userID and proper format
-      const cleanToken = storedToken.startsWith('Bearer ') ? storedToken.substring(7) : storedToken
-      token.value = cleanToken.includes(parsedUser.id) ? cleanToken : `${parsedUser.id}_token`
+      token.value = storedToken
       user.value = parsedUser
     }
   } catch (e) {
@@ -52,14 +58,10 @@ export const useAuthStore = defineStore('auth', () => {
         return false
       }
 
-      // Store token in userID_token format
-      const tokenValue = data.token.endsWith('_token') ? data.token : `${data.user.id}_token`
-      // Ensure token includes userID
-      token.value = tokenValue.includes(data.user.id) ? tokenValue : `${data.user.id}_token`
+      const tokenValue = data.token
+      token.value = tokenValue
       user.value = data.user
-      if (token.value) {
-        localStorage.setItem('token', token.value)
-      }
+      localStorage.setItem('token', tokenValue)
       localStorage.setItem('user', JSON.stringify(data.user))
       return true
     } catch (error) {
