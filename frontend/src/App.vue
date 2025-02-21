@@ -25,7 +25,52 @@
             <q-icon name="home" size="md" />
           </q-item-section>
           <q-item-section>
-            <q-item-label class="text-h6">ホーム</q-item-label>
+            <q-item-label>ホーム</q-item-label>
+          </q-item-section>
+        </q-item>
+
+        <q-item clickable v-ripple>
+          <q-item-section avatar>
+            <q-icon name="search" size="md" />
+          </q-item-section>
+          <q-item-section>
+            <q-item-label>話題を検索</q-item-label>
+          </q-item-section>
+        </q-item>
+
+        <q-item :clickable="false">
+          <q-item-section avatar>
+            <q-icon name="notifications" size="md" />
+          </q-item-section>
+          <q-item-section>
+            <q-item-label>通知</q-item-label>
+          </q-item-section>
+        </q-item>
+
+        <q-item :clickable="false">
+          <q-item-section avatar>
+            <q-icon name="mail" size="md" />
+          </q-item-section>
+          <q-item-section>
+            <q-item-label>メッセージ</q-item-label>
+          </q-item-section>
+        </q-item>
+
+        <q-item :clickable="false">
+          <q-item-section avatar>
+            <q-icon name="list" size="md" />
+          </q-item-section>
+          <q-item-section>
+            <q-item-label>リスト</q-item-label>
+          </q-item-section>
+        </q-item>
+
+        <q-item :clickable="false">
+          <q-item-section avatar>
+            <q-icon name="bookmark" size="md" />
+          </q-item-section>
+          <q-item-section>
+            <q-item-label>ブックマーク</q-item-label>
           </q-item-section>
         </q-item>
 
@@ -34,13 +79,22 @@
             <q-icon name="person" size="md" />
           </q-item-section>
           <q-item-section>
-            <q-item-label class="text-h6">プロフィール</q-item-label>
+            <q-item-label>プロフィール</q-item-label>
           </q-item-section>
         </q-item>
 
+        <q-btn
+          color="primary"
+          class="full-width q-my-md"
+          rounded
+          size="lg"
+          label="ポストする"
+          @click="showPostDialog = true"
+        />
+
         <q-separator class="q-my-md" />
 
-        <q-item clickable v-ripple>
+        <q-item clickable v-ripple class="account-item">
           <q-item-section avatar>
             <q-avatar>
               <img :src="'https://ui-avatars.com/api/?name=' + (isLoggedIn ? authStore.user?.id : 'guest')" />
@@ -116,6 +170,11 @@
           @click="showTrends = true"
         />
       </q-page-sticky>
+
+      <!-- Post Dialog -->
+      <post-dialog
+        v-model="showPostDialog"
+      />
     </q-page-container>
   </q-layout>
 </template>
@@ -124,8 +183,8 @@
 import { ref, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
-
 import { useQuasar } from 'quasar'
+import PostDialog from '@/components/PostDialog.vue'
 
 const $q = useQuasar()
 const router = useRouter()
@@ -133,6 +192,7 @@ const authStore = useAuthStore()
 
 const leftDrawerOpen = ref(false)
 const showTrends = ref(false)
+const showPostDialog = ref(false)
 const isLoggedIn = computed(() => authStore.isAuthenticated)
 
 const logout = () => {
