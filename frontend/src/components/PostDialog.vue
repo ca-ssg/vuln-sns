@@ -12,8 +12,9 @@
         <q-input
           v-model="content"
           type="textarea"
-          class="bg-black"
+          class="q-mb-md"
           dark
+          outlined
           autofocus
           placeholder="いまどうしてる？"
           :rules="[val => val.length <= 140 || '140文字以内で入力してください']"
@@ -80,3 +81,25 @@ const handlePost = async () => {
   }
 }
 </script>
+
+<style scoped>
+:deep(.q-field__control) {
+  background: #253341 !important;
+}
+
+:deep(.q-field__label) {
+  color: #8899a6 !important;
+}
+
+:deep(.q-field--outlined .q-field__control:before) {
+  border-color: #38444d !important;
+}
+
+:deep(.q-dialog__backdrop) {
+  background: rgba(91, 112, 131, 0.4) !important;
+}
+
+:deep(.q-card) {
+  background-color: #15202b !important;
+}
+</style>

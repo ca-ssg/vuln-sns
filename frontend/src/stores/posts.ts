@@ -102,7 +102,14 @@ export const usePostsStore = defineStore('posts', {
         const response = await axios.get<Post[]>('/search', {
           params: { tag }
         })
-        this.posts = response.data || []
+        const searchResults = response.data || []
+        
+        // 既存の投稿のisLikedプロパティを保持する
+        const existingPosts = [...this.posts]
+        this.posts = searchResults.map(newPost => {
+          const existingPost = existingPosts.find(p => p.id === newPost.id)
+          return existingPost ? { ...newPost, isLiked: existingPost.isLiked } : newPost
+        })
       } catch (error) {
         console.error('Error searching posts:', error)
         this.error = 'Failed to search posts'

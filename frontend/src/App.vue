@@ -49,7 +49,7 @@
 
         <q-btn
           color="primary"
-          class="full-width q-my-md"
+          class="full-width q-my-md q-mx-md"
           rounded
           size="lg"
           label="ポストする"
