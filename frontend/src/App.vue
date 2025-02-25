@@ -50,7 +50,7 @@
         <q-btn
           color="primary"
           class="full-width q-my-md"
-          style="margin-left: 16px; margin-right: 16px;"
+          style="margin-left: 16px !important; margin-right: 16px !important;"
           rounded
           size="lg"
           label="ポストする"
