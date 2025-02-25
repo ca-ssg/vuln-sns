@@ -49,7 +49,8 @@
 
         <q-btn
           color="primary"
-          class="full-width q-my-md q-mx-md"
+          class="full-width q-my-md"
+          style="margin-left: 16px; margin-right: 16px;"
           rounded
           size="lg"
           label="ポストする"
