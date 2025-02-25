@@ -1,10 +1,10 @@
 <template>
   <q-dialog v-model="isOpen" persistent>
-    <q-card class="bg-black post-dialog" style="min-width: 500px">
+    <q-card class="bg-blue-grey-9 post-dialog" style="min-width: 500px">
       <q-card-section class="q-pb-none">
         <div class="row items-center">
           <q-btn flat round icon="close" @click="closeDialog" />
-          <div class="text-h6 q-ml-md">新規投稿</div>
+          <div class="text-h6 text-white q-ml-md">新規投稿</div>
         </div>
       </q-card-section>
 
@@ -12,7 +12,7 @@
         <q-input
           v-model="content"
           type="textarea"
-          class="q-mb-md"
+          class="q-mb-md bg-blue-grey-8"
           dark
           outlined
           autofocus
@@ -31,6 +31,7 @@
           :loading="posting"
           :disable="!content.trim() || content.length > 140"
           rounded
+          style="margin-left: 16px; margin-right: 16px;"
         />
       </q-card-actions>
     </q-card>
@@ -83,23 +84,11 @@ const handlePost = async () => {
 </script>
 
 <style scoped>
-:deep(.q-field__control) {
-  background: #253341 !important;
-}
-
-:deep(.q-field__label) {
-  color: #8899a6 !important;
-}
-
 :deep(.q-field--outlined .q-field__control:before) {
-  border-color: #38444d !important;
+  border-color: var(--q-blue-grey-7);
 }
 
 :deep(.q-dialog__backdrop) {
-  background: rgba(91, 112, 131, 0.4) !important;
-}
-
-:deep(.q-card) {
-  background-color: #15202b !important;
+  background: rgba(91, 112, 131, 0.4);
 }
 </style>
