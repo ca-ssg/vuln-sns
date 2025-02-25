@@ -49,8 +49,7 @@
 
         <q-btn
           color="primary"
-          class="full-width q-my-md"
-          style="margin-left: 16px !important; margin-right: 16px !important;"
+          class="full-width-with-margin q-my-md"
           rounded
           size="lg"
           label="ポストする"
@@ -231,6 +230,12 @@ body {
 
 .q-drawer {
   border-right: 1px solid #2F3336 !important;
+}
+
+/* カスタムクラス - full-widthを拡張し、左右マージンを追加 */
+.full-width-with-margin {
+  width: 100% !important;
+  margin: 8px 16px !important;
 }
 
 /* Mobile-specific styles */

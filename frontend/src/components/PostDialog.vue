@@ -26,12 +26,12 @@
       <q-card-actions align="right" class="q-pa-md">
         <q-btn 
           color="primary" 
+          class="full-width-with-margin"
           label="投稿する" 
           @click="handlePost" 
           :loading="posting"
           :disable="!content.trim() || content.length > 140"
           rounded
-          style="margin-left: 16px; margin-right: 16px;"
         />
       </q-card-actions>
     </q-card>
