@@ -6,6 +6,7 @@ import (
     "os"
     "strings"
     "time"
+    
     "github.com/gin-gonic/gin"
     "github.com/gin-contrib/cors"
     _ "github.com/go-sql-driver/mysql"
@@ -20,19 +21,28 @@ func main() {
     r := gin.Default()
     log.Printf("Initializing Gin router...")
 
+    // Get port from environment variable
+    port := os.Getenv("PORT")
+    if port == "" {
+        port = "8080"
+    }
+
     // Get allowed origins from environment variable
     allowedOrigins := os.Getenv("ALLOWED_ORIGINS")
     if allowedOrigins == "" {
-        allowedOrigins = "http://localhost:5173"
+        allowedOrigins = "http://localhost:5173,http://localhost:5174"
     }
+
+    // Split allowed origins into slice
+    origins := strings.Split(allowedOrigins, ",")
 
     // CORS configuration - Apply before route registration
     r.Use(cors.New(cors.Config{
-        AllowOrigins:     strings.Split(allowedOrigins, ","),
+        AllowOrigins:     origins,
         AllowMethods:     []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
-        AllowHeaders:     []string{"Origin", "Content-Type", "Authorization", "Accept"},
+        AllowHeaders:     []string{"Origin", "Content-Type", "Authorization", "Accept", "X-Requested-With"},
         AllowCredentials: true,
-        ExposeHeaders:    []string{"Content-Length"},
+        ExposeHeaders:    []string{"Content-Length", "Content-Type", "Authorization"},
         MaxAge:           12 * time.Hour,
     }))
 
@@ -103,11 +113,6 @@ func main() {
         protected.PUT("/profile", authHandler.UpdateProfile)
     }
     log.Printf("Routes registered successfully")
-
-    port := os.Getenv("PORT")
-    if port == "" {
-        port = "8080"
-    }
     log.Printf("Starting server on port %s", port)
     log.Fatal(r.Run(":" + port))
 }

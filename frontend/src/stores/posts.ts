@@ -1,17 +1,5 @@
 import { defineStore } from 'pinia'
-import axios from 'axios'
-import { useAuthStore } from './auth'
-
-const API_URL = import.meta.env.VITE_API_URL
-
-// Add auth header to all requests
-axios.interceptors.request.use(config => {
-  const authStore = useAuthStore()
-  if (authStore.token) {
-    config.headers.Authorization = `Bearer ${authStore.token}`
-  }
-  return config
-})
+import { axiosInstance as axios } from './auth'
 
 interface Post {
   id: number
@@ -39,7 +27,7 @@ export const usePostsStore = defineStore('posts', {
     async fetchPosts(): Promise<void> {
       this.loading = true
       try {
-        const response = await axios.get<Post[]>(`${API_URL}/posts`)
+        const response = await axios.get<Post[]>('/posts')
         this.posts = response.data
       } catch (error) {
         console.error('Error fetching posts:', error)
@@ -52,7 +40,7 @@ export const usePostsStore = defineStore('posts', {
     async createPost(content: string): Promise<void> {
       this.loading = true
       try {
-        const response = await axios.post<Post>(`${API_URL}/posts`, { content })
+        const response = await axios.post<Post>('/posts', { content })
         this.posts.unshift(response.data)
       } catch (error) {
         console.error('Error creating post:', error)
@@ -65,7 +53,7 @@ export const usePostsStore = defineStore('posts', {
     async updatePost(id: number, content: string): Promise<void> {
       this.loading = true
       try {
-        await axios.put(`${API_URL}/posts/${id}`, { content })
+        await axios.put(`/posts/${id}`, { content })
         const index = this.posts.findIndex(post => post.id === id)
         if (index !== -1) {
           this.posts[index].content = content
@@ -81,7 +69,7 @@ export const usePostsStore = defineStore('posts', {
     async deletePost(id: number): Promise<void> {
       this.loading = true
       try {
-        await axios.delete(`${API_URL}/posts/${id}`)
+        await axios.delete(`/posts/${id}`)
         this.posts = this.posts.filter(post => post.id !== id)
       } catch (error) {
         console.error('Error deleting post:', error)
@@ -93,7 +81,7 @@ export const usePostsStore = defineStore('posts', {
 
     async likePost(id: number): Promise<void> {
       try {
-        const response = await axios.post(`${API_URL}/posts/${id}/like`, {})
+        const response = await axios.post(`/posts/${id}/like`, {})
         const post = this.posts.find(p => p.id === id)
         if (post) {
           // Only increment likes if this is a new like (not a duplicate)
@@ -111,7 +99,7 @@ export const usePostsStore = defineStore('posts', {
     async searchByHashtag(tag: string): Promise<void> {
       this.loading = true
       try {
-        const response = await axios.get<Post[]>(`${API_URL}/search`, {
+        const response = await axios.get<Post[]>('/search', {
           params: { tag }
         })
         this.posts = response.data || []
@@ -125,7 +113,7 @@ export const usePostsStore = defineStore('posts', {
 
     async unlikePost(id: number): Promise<void> {
       try {
-        await axios.delete(`${API_URL}/posts/${id}/like`)
+        await axios.delete(`/posts/${id}/like`)
         const post = this.posts.find(p => p.id === id)
         if (post && post.isLiked) {
           post.likes--

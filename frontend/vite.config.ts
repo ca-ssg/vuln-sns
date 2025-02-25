@@ -5,6 +5,10 @@ import vueJsx from '@vitejs/plugin-vue-jsx'
 import { quasar, transformAssetUrls } from '@quasar/vite-plugin'
 
 export default defineConfig({
+  build: {
+    outDir: 'dist',
+    sourcemap: true
+  },
   plugins: [
     vue({
       template: { transformAssetUrls }
@@ -23,7 +27,12 @@ export default defineConfig({
     host: '0.0.0.0',
     port: 5173,
     hmr: {
-      overlay: false
+      overlay: false,
+      clientPort: 5173
     }
+  },
+  optimizeDeps: {
+    include: ['@vue/runtime-core', '@vue/shared'],
+    exclude: ['@quasar/extras']
   }
 })

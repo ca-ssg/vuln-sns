@@ -2,8 +2,6 @@ package handlers
 
 import (
     "database/sql"
-    "encoding/json"
-    "io"
     "log"
     "net/http"
     "github.com/gin-gonic/gin"
@@ -23,21 +21,13 @@ func NewAuthHandler(db *sql.DB) *AuthHandler {
 func (h *AuthHandler) Login(c *gin.Context) {
     log.Printf("Login attempt")
     var credentials struct {
-        UserID string `json:"user_id"`
+        UserID   string `json:"user_id"`
+        Password string `json:"password"`
     }
 
-    body, err := io.ReadAll(c.Request.Body)
-    if err != nil {
-        log.Printf("Error reading request body: %v", err)
-        c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request body"})
-        return
-    }
-
-    log.Printf("Request body: %s", string(body))
-
-    if err := json.Unmarshal(body, &credentials); err != nil {
-        log.Printf("Error parsing JSON: %v", err)
-        c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid JSON format"})
+    if err := c.BindJSON(&credentials); err != nil {
+        log.Printf("Error binding JSON: %v", err)
+        c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request format"})
         return
     }
 

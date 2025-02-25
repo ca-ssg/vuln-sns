@@ -1,5 +1,23 @@
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
+import axios from 'axios'
+
+export const axiosInstance = axios.create({
+  baseURL: import.meta.env.VITE_API_URL,
+  withCredentials: true,
+  headers: {
+    'Content-Type': 'application/json'
+  }
+})
+
+// Add auth header to all requests
+axiosInstance.interceptors.request.use(config => {
+  const storedToken = localStorage.getItem('token')
+  if (storedToken) {
+    config.headers.Authorization = `Bearer ${storedToken}`
+  }
+  return config
+})
 
 interface User {
   id: string
@@ -16,9 +34,7 @@ export const useAuthStore = defineStore('auth', () => {
     const storedUser = localStorage.getItem('user')
     if (storedToken && storedUser) {
       const parsedUser = JSON.parse(storedUser)
-      // Ensure token has userID and proper format
-      const cleanToken = storedToken.startsWith('Bearer ') ? storedToken.substring(7) : storedToken
-      token.value = cleanToken.includes(parsedUser.id) ? cleanToken : `${parsedUser.id}_token`
+      token.value = storedToken
       user.value = parsedUser
     }
   } catch (e) {
@@ -32,21 +48,9 @@ export const useAuthStore = defineStore('auth', () => {
   const login = async (id: string, password: string): Promise<boolean> => {
     try {
       console.log('Attempting login with:', { id, password })
-      const response = await fetch(`${import.meta.env.VITE_API_URL}/login`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ user_id: id, password }),
-        credentials: 'include'
-      })
+      const response = await axiosInstance.post('/login', { user_id: id, password })
 
-      if (!response.ok) {
-        console.error('Login failed:', await response.text())
-        return false
-      }
-
-      const data = await response.json()
+      const data = response.data
       console.log('Login response:', data)
       
       if (!data.token || !data.user) {
@@ -54,14 +58,10 @@ export const useAuthStore = defineStore('auth', () => {
         return false
       }
 
-      // Store token in userID_token format
-      const tokenValue = data.token.endsWith('_token') ? data.token : `${data.user.id}_token`
-      // Ensure token includes userID
-      token.value = tokenValue.includes(data.user.id) ? tokenValue : `${data.user.id}_token`
+      const tokenValue = data.token
+      token.value = tokenValue
       user.value = data.user
-      if (token.value) {
-        localStorage.setItem('token', token.value)
-      }
+      localStorage.setItem('token', tokenValue)
       localStorage.setItem('user', JSON.stringify(data.user))
       return true
     } catch (error) {
@@ -79,19 +79,9 @@ export const useAuthStore = defineStore('auth', () => {
 
   const updateNickname = async (nickname: string): Promise<boolean> => {
     try {
-      const response = await fetch(`${import.meta.env.VITE_API_URL}/profile`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token.value || ''}`
-        },
-        body: JSON.stringify({ nickname }),
-      })
+      const response = await axiosInstance.put('/profile', { nickname })
 
-      if (!response.ok) {
-        console.error('Failed to update nickname:', await response.text())
-        return false
-      }
+      const data = response.data
 
       if (user.value) {
         const updatedUser: User = { ...user.value, nickname }

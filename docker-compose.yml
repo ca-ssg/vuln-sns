@@ -22,7 +22,7 @@ services:
       - "9090:8080"
     environment:
       - MYSQL_DSN=root:password@tcp(db:3306)/vuln_app?parseTime=true&multiStatements=true&charset=utf8mb4
-      - ALLOWED_ORIGINS=http://localhost:5173
+      - ALLOWED_ORIGINS=http://localhost:5173,http://localhost:5174
     depends_on:
       db:
         condition: service_healthy

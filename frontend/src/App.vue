@@ -1,10 +1,12 @@
 <template>
   <q-layout view="hHh LpR lFf" class="bg-black">
     <!-- Header with mobile menu button -->
-    <q-header elevated class="bg-black q-py-sm">
-      <q-toolbar>
+    <q-header class="bg-black" style="border-bottom: 1px solid #2F3336">
+      <q-toolbar style="min-height: 53px; padding: 0 16px;">
         <q-btn dense flat round icon="menu" @click="leftDrawerOpen = !leftDrawerOpen" class="lt-md" />
-        <q-toolbar-title class="text-h6">ホーム</q-toolbar-title>
+        <q-toolbar-title class="text-weight-bold" style="font-size: 20px;">
+          ホーム
+        </q-toolbar-title>
       </q-toolbar>
     </q-header>
 
@@ -23,7 +25,16 @@
             <q-icon name="home" size="md" />
           </q-item-section>
           <q-item-section>
-            <q-item-label class="text-h6">ホーム</q-item-label>
+            <q-item-label>ホーム</q-item-label>
+          </q-item-section>
+        </q-item>
+
+        <q-item clickable v-ripple to="/search">
+          <q-item-section avatar>
+            <q-icon name="search" size="md" />
+          </q-item-section>
+          <q-item-section>
+            <q-item-label>話題を検索</q-item-label>
           </q-item-section>
         </q-item>
 
@@ -32,21 +43,44 @@
             <q-icon name="person" size="md" />
           </q-item-section>
           <q-item-section>
-            <q-item-label class="text-h6">プロフィール</q-item-label>
+            <q-item-label>プロフィール</q-item-label>
           </q-item-section>
         </q-item>
+
+        <q-btn
+          color="primary"
+          class="full-width q-my-md"
+          rounded
+          size="lg"
+          label="ポストする"
+          @click="showPostDialog = true"
+        />
 
         <q-separator class="q-my-md" />
 
-        <q-item v-if="!isLoggedIn" clickable v-ripple to="/login">
-          <q-item-section>
-            <q-item-label class="text-h6">ログイン</q-item-label>
+        <q-item clickable v-ripple class="account-item">
+          <q-item-section avatar>
+            <q-avatar>
+              <img :src="'https://ui-avatars.com/api/?name=' + (isLoggedIn ? authStore.user?.id : 'guest')" />
+            </q-avatar>
           </q-item-section>
-        </q-item>
-
-        <q-item v-else clickable v-ripple @click="logout">
           <q-item-section>
-            <q-item-label class="text-h6">ログアウト</q-item-label>
+            <q-item-label>{{ isLoggedIn ? authStore.user?.id : 'ゲスト' }}</q-item-label>
+          </q-item-section>
+          <q-item-section side>
+            <q-btn flat round>
+              <q-menu anchor="bottom right" self="top right">
+                <q-list style="min-width: 200px">
+                  <q-item v-if="!isLoggedIn" clickable v-ripple to="/login">
+                    <q-item-section>ログイン</q-item-section>
+                  </q-item>
+                  <q-item v-else clickable v-ripple @click="logout">
+                    <q-item-section>ログアウト</q-item-section>
+                  </q-item>
+                </q-list>
+              </q-menu>
+              <q-icon name="more_vert" />
+            </q-btn>
           </q-item-section>
         </q-item>
       </q-list>
@@ -57,9 +91,9 @@
         <router-view />
       </div>
       <div class="col-md-4 gt-sm">
-        <q-card flat bordered class="bg-black q-mt-md trends-card" style="border-color: #2F3336">
-          <q-card-section>
-            <div class="text-h6">トレンド</div>
+        <div class="bg-black q-mt-md trends-section" style="border-left: 1px solid #2F3336">
+          <div class="q-pa-md">
+            <div class="text-h6 q-mb-md">トレンド</div>
             <q-list>
               <q-item clickable v-ripple @click="searchHashtag(tag)" v-for="tag in ['セキュリティ', '脆弱性']" :key="tag">
                 <q-item-section>
@@ -69,15 +103,15 @@
                 </q-item-section>
               </q-item>
             </q-list>
-          </q-card-section>
-        </q-card>
+          </div>
+        </div>
       </div>
 
       <!-- Mobile Trends Dialog -->
       <q-dialog v-model="showTrends" position="bottom">
-        <q-card class="bg-black full-width" style="border-color: #2F3336">
-          <q-card-section>
-            <div class="text-h6">トレンド</div>
+        <div class="bg-black full-width">
+          <div class="q-pa-md">
+            <div class="text-h6 q-mb-md">トレンド</div>
             <q-list>
               <q-item clickable v-ripple @click="searchHashtagMobile(tag)" v-for="tag in ['セキュリティ', '脆弱性']" :key="tag">
                 <q-item-section>
@@ -87,8 +121,8 @@
                 </q-item-section>
               </q-item>
             </q-list>
-          </q-card-section>
-        </q-card>
+          </div>
+        </div>
       </q-dialog>
 
       <!-- Mobile Trends Button -->
@@ -100,6 +134,11 @@
           @click="showTrends = true"
         />
       </q-page-sticky>
+
+      <!-- Post Dialog -->
+      <post-dialog
+        v-model="showPostDialog"
+      />
     </q-page-container>
   </q-layout>
 </template>
@@ -108,15 +147,16 @@
 import { ref, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
-import { usePostsStore } from '@/stores/posts'
 import { useQuasar } from 'quasar'
+import PostDialog from '@/components/PostDialog.vue'
 
 const $q = useQuasar()
 const router = useRouter()
 const authStore = useAuthStore()
-const postsStore = usePostsStore()
+
 const leftDrawerOpen = ref(false)
 const showTrends = ref(false)
+const showPostDialog = ref(false)
 const isLoggedIn = computed(() => authStore.isAuthenticated)
 
 const logout = () => {
@@ -146,23 +186,25 @@ body {
 }
 
 .q-drawer {
-  background-color: #15202b !important;
+  background-color: #000000 !important;
 }
 
 .q-item {
-  color: white;
+  color: var(--q-text);
+  padding: 12px 16px;
+  min-height: 50px;
 }
 
 .q-item__label--header {
-  color: #8899a6;
+  color: #71767B;
 }
 
 .q-item__label--caption {
-  color: #8899a6;
+  color: #71767B;
 }
 
 .q-separator {
-  background: #38444d;
+  background: #2F3336;
 }
 
 .q-toolbar {
@@ -170,20 +212,24 @@ body {
 }
 
 .q-page-container {
-  background-color: #15202b;
-  padding: 16px;
+  background-color: #000000;
+  padding: 0;
 }
 
 .q-card {
-  border-radius: 16px;
+  border-radius: 0;
 }
 
 .q-item {
-  border-radius: 8px;
-  margin: 4px 0;
+  border-radius: 0;
+  margin: 0;
   &:hover {
     background-color: rgba(255, 255, 255, 0.03);
   }
+}
+
+.q-drawer {
+  border-right: 1px solid #2F3336 !important;
 }
 
 /* Mobile-specific styles */

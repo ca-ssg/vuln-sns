@@ -3,15 +3,16 @@
 
 /* Custom styles */
 :root {
-  --q-primary: #1DA1F2;
-  --q-secondary: #657786;
+  --q-primary: #1D9BF0;
+  --q-secondary: #71767B;
   --q-accent: #F91880;
   --q-dark: #000000;
+  --q-text: #E7E9EA;
 }
 
 body {
   background-color: var(--q-dark);
-  color: #ffffff;
+  color: var(--q-text);
 }
 
 .q-field__native {
@@ -28,10 +29,10 @@ body {
 
 :root {
   --color-bg: #000000;
-  --color-text: #ffffff;
+  --color-text: #E7E9EA;
   --color-border: #2F3336;
-  --color-primary: #1DA1F2;
-  --color-secondary: #657786;
+  --color-primary: #1D9BF0;
+  --color-secondary: #71767B;
 }
 
 body {
