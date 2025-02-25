@@ -4,17 +4,17 @@
 
 ## 認証機能の脆弱性
 - [ログイン機能のSQLインジェクション](auth/sqli-login.md)
-- [セッション管理の不備](auth/session-management.md)
+- [認証トークンの露出](auth/auth-token-exposure.md)
 
 ## 投稿機能の脆弱性
 - [投稿機能のSQLインジェクション](post/sqli-post.md)
 - [投稿表示機能のXSS](post/xss-post.md)
-- [いいね機能のCSRF](post/csrf-like.md)
 
 ## プロフィール機能の脆弱性
 - [プロフィール機能のSQLインジェクション](profile/sqli-profile.md)
 - [プロフィール表示機能のXSS](profile/xss-profile.md)
 - [プロフィール更新機能のCSRF](profile/csrf-profile.md)
+- [プロフィール更新機能のSQLインジェクション](profile/injection-profile-update.md)
 
 ## 検索機能の脆弱性
 - [検索機能のSQLインジェクション](search/sqli-search.md)
