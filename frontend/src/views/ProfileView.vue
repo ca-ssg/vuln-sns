@@ -18,44 +18,41 @@
     </div>
 
     <!-- Edit Profile Dialog -->
-    <q-dialog v-model="showEditDialog" persistent>
-      <q-card class="bg-dark text-white" style="min-width: 350px">
-        <q-card-section class="row items-center q-pb-none">
-          <div class="text-h6">プロフィールを編集</div>
-          <q-space />
-          <q-btn icon="close" flat round dense v-close-popup />
-        </q-card-section>
-
-        <q-card-section class="q-pt-lg">
-          <q-input
-            v-model="newNickname"
-            label="ニックネーム"
-            dark
-            outlined
-            class="q-mb-md"
-            :rules="[val => !!val || 'ニックネームを入力してください']"
-          />
-        </q-card-section>
-
-        <q-card-actions align="right" class="bg-dark text-white">
-          <q-btn flat label="キャンセル" v-close-popup />
-          <q-btn
-            color="primary"
-            label="保存"
-            rounded
-            unelevated
-            @click="updateProfile"
-            :loading="loading"
-          />
-        </q-card-actions>
-      </q-card>
-    </q-dialog>
+    <base-dialog
+      v-model="showEditDialog"
+      title="プロフィールを編集"
+      min-width="350px"
+      @close="showEditDialog = false"
+    >
+      <template #content>
+        <q-input
+          v-model="newNickname"
+          label="ニックネーム"
+          dark
+          outlined
+          class="q-mb-md"
+          :rules="[val => !!val || 'ニックネームを入力してください']"
+        />
+      </template>
+      <template #actions>
+        <q-btn flat label="キャンセル" @click="showEditDialog = false" />
+        <q-btn
+          color="primary"
+          label="保存"
+          rounded
+          unelevated
+          @click="updateProfile"
+          :loading="loading"
+        />
+      </template>
+    </base-dialog>
   </div>
 </template>
 
 <script setup lang="ts">
 import { ref } from 'vue'
 import { useAuthStore } from '@/stores/auth'
+import BaseDialog from '@/components/BaseDialog.vue'
 
 const authStore = useAuthStore()
 const showEditDialog = ref(false)
