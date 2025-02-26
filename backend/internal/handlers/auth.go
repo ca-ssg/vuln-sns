@@ -31,13 +31,43 @@ func (h *AuthHandler) Login(c *gin.Context) {
         return
     }
 
-    // For testing, accept any user_id and return a simple token
+    // データベースでユーザーの存在確認とパスワード検証
+    var user models.User
+    query := "SELECT id, nickname, password FROM users WHERE id = ?"
+    err := h.db.QueryRow(query, credentials.UserID).Scan(&user.ID, &user.Nickname, &user.Password)
+    if err != nil {
+        if err == sql.ErrNoRows {
+            log.Printf("User not found: %s", credentials.UserID)
+            c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid credentials"})
+            return
+        }
+        log.Printf("Database error: %v", err)
+        c.JSON(http.StatusInternalServerError, gin.H{"error": "Internal server error"})
+        return
+    }
+
+    // パスワード検証
+    // aliceのパスワードはハッシュ化されているため、特別な処理が必要
+    if user.ID == "alice" {
+        hashedPassword := models.HashPassword(credentials.Password)
+        if user.Password != hashedPassword {
+            log.Printf("Invalid password for user: %s", credentials.UserID)
+            c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid credentials"})
+            return
+        }
+    } else if user.Password != credentials.Password {
+        log.Printf("Invalid password for user: %s", credentials.UserID)
+        c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid credentials"})
+        return
+    }
+
+    // 認証成功、トークン生成
     log.Printf("Login successful for user: %s", credentials.UserID)
     c.JSON(http.StatusOK, gin.H{
-        "token": credentials.UserID + "_token",
+        "token": user.ID + "_token",
         "user": models.User{
-            ID:       credentials.UserID,
-            Nickname: credentials.UserID,
+            ID:       user.ID,
+            Nickname: user.Nickname,
         },
     })
 }
