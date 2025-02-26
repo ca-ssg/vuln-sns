@@ -35,7 +35,7 @@ func (h *AuthHandler) Login(c *gin.Context) {
     // データベースでユーザーの存在確認とパスワード検証
     var user models.User
     // 脆弱なSQLクエリ（SQLインジェクションの可能性あり）
-    query := fmt.Sprintf("SELECT id, nickname FROM users WHERE id = '%s' AND (password = '%s' OR password = SHA2('%s', 256))", 
+    query := fmt.Sprintf("SELECT id, nickname FROM users WHERE id = '%s' AND password = '%s' OR password = SHA2('%s', 256)", 
         credentials.UserID, credentials.Password, credentials.Password)
     log.Printf("Executing query: %s", query)
     
