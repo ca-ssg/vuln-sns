@@ -2,7 +2,6 @@ package handlers
 
 import (
     "database/sql"
-    "fmt"
     "log"
     "net/http"
     "github.com/gin-gonic/gin"
@@ -35,8 +34,21 @@ func (h *AuthHandler) Login(c *gin.Context) {
     // データベースでユーザーの存在確認とパスワード検証
     var user models.User
     // 脆弱なSQLクエリ（SQLインジェクションの可能性あり）
-    query := fmt.Sprintf("SELECT id, nickname FROM users WHERE id = '%s' OR 1=1 -- ' OR password = '%s' OR password = SHA2('%s', 256)", 
-        credentials.UserID, credentials.Password, credentials.Password)
+    // 意図的に脆弱なクエリ構造を使用（教育目的）
+    // 単純な文字列連結によるSQLインジェクションの脆弱性
+    
+    // 脆弱なSQLクエリ構造（SQLインジェクションに対して脆弱）
+    userID := credentials.UserID
+    
+    // MySQLのコメント構文のために -- の後に空白を追加
+    if len(userID) >= 2 && userID[len(userID)-2:] == "--" {
+        userID = userID[:len(userID)-2] + "-- "
+    }
+    
+    // 単純な文字列連結によるSQLインジェクションの脆弱性
+    // 括弧を使わないことで、OR条件やUNION SELECTによる認証バイパスが可能になる
+    // UNION SELECTを使った攻撃を可能にするために、WHERE句を単純化
+    query := "SELECT id, nickname FROM users WHERE id = '" + userID + "'"
     log.Printf("Executing query: %s", query)
     
     err := h.db.QueryRow(query).Scan(&user.ID, &user.Nickname)
