@@ -16,6 +16,60 @@
 - バックエンド：`backend/internal/middleware/auth.go`
 - フロントエンド：`frontend/src/stores/auth.ts`
 
+## 攻撃方法と手順
+
+### 1. ブラウザの開発者ツールを使用したトークン取得
+
+1. アプリケーションにログインします
+2. ブラウザの開発者ツールを開きます（Chrome: F12キー、または右クリック→「検証」）
+3. 「Application」タブ（Chrome）または「Storage」タブ（Firefox）を選択します
+4. 左側のサイドバーから「Local Storage」を展開し、アプリケーションのドメインを選択します
+5. 右側のペインに表示される「token」キーの値を確認します
+
+この値は`userID_token`形式の認証トークンで、これを使用して他のユーザーになりすますことができます。
+
+### 2. ネットワークログからのトークン取得
+
+1. アプリケーションにログインします
+2. ブラウザの開発者ツールを開きます
+3. 「Network」タブを選択します
+4. ページを更新するか、APIリクエストが発生する操作を行います
+5. リクエストの一覧から任意のAPIリクエストを選択します
+6. 「Headers」タブで「Authorization」ヘッダーの値を確認します
+
+この値は`Bearer userID_token`形式になっており、トークンを簡単に抽出できます。
+
+### 3. サーバーログからのトークン取得（サーバーアクセス権がある場合）
+
+サーバーのログファイルには認証トークンが平文で出力されています：
+
+```
+Auth header: Bearer user1_token
+```
+
+## 攻撃成功の確認手順
+
+### 1. 取得したトークンを使用した認証バイパス
+
+1. 取得したトークン（例：`user1_token`）をメモします
+2. ブラウザの開発者ツールを開きます
+3. コンソールタブで以下のコマンドを実行します：
+
+```javascript
+localStorage.setItem('token', 'user1_token');
+```
+
+4. ページを更新します
+5. 正常にログインされ、user1のアカウントとしてアプリケーションにアクセスできることを確認します
+
+### 2. APIリクエストへの直接トークン挿入
+
+1. Postmanなどのツールを使用して、APIエンドポイント（例：`/api/profile`）にGETリクエストを送信します
+2. Authorizationヘッダーに`Bearer user1_token`を設定します
+3. リクエストを送信し、正常にレスポンスが返ってくることを確認します
+
+これにより、認証トークンが簡単に取得・再利用可能であることが確認できます。
+
 ## 対策方法
 本番環境では以下の対策が必要：
 
@@ -52,13 +106,8 @@ tokenString, err := token.SignedString([]byte(os.Getenv("JWT_SECRET")))
 localStorage.setItem('token', token)
 
 // 修正後
-// トークンを暗号化して保存
-const encryptToken = (token: string): string => {
-    const key = await deriveKey(process.env.VITE_APP_KEY)
-    return await encrypt(token, key)
-}
-const encryptedToken = await encryptToken(token)
-sessionStorage.setItem('token', encryptedToken)
+// セッションストレージを使用して保存（ブラウザを閉じると消去される）
+sessionStorage.setItem('token', token)
 ```
 
 ### 4. セキュアなヘッダーの設定
