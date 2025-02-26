@@ -1,85 +1,72 @@
-# ログイン機能のSQLインジェクション
+# ログイン機能のセキュリティ
 
-## 脆弱性の説明
-ログイン処理でユーザー入力を直接SQLクエリに結合しているため、SQLインジェクションが可能です。
+## 実装の説明
+現在のログイン処理は、SQLクエリを使用せずに実装されています。代わりに、任意のユーザーIDを受け入れ、それに基づいてトークンを生成します。
 
 ## 影響範囲
-- ユーザー認証のバイパス
-- データベース情報の漏洩
-- 不正なアカウントアクセス
+- 認証のバイパス（任意のユーザーIDでログイン可能）
+- セッション管理の問題
 
 ## 攻撃方法と手順
 
 ### 1. 認証バイパス攻撃
 
 1. アプリケーションのログイン画面にアクセスします
-2. ユーザーIDフィールドに以下のSQLインジェクションペイロードを入力します：
-   ```
-   ' OR '1'='1
-   ```
-   または
-   ```
-   admin' --
-   ```
+2. ユーザーIDフィールドに任意のユーザーID（例：`admin`）を入力します
 3. パスワードフィールドには任意の値（例：`password`）を入力します
 4. ログインボタンをクリックします
 
-このペイロードは、WHERE句の条件を常に真にするため、データベース内の最初のユーザー（多くの場合は管理者）としてログインできます。
-
-### 2. ユーザー情報の抽出攻撃
-
-1. アプリケーションのログイン画面にアクセスします
-2. ユーザーIDフィールドに以下のSQLインジェクションペイロードを入力します：
-   ```
-   ' UNION SELECT 'admin', 'hacked' FROM users WHERE '1'='1
-   ```
-3. パスワードフィールドには任意の値を入力します
-4. ログインボタンをクリックします
-
-このペイロードは、UNIONを使用して偽のユーザー情報を結果セットに追加し、認証をバイパスします。
-
-### 3. データベース情報の取得攻撃
-
-1. アプリケーションのログイン画面にアクセスします
-2. ユーザーIDフィールドに以下のSQLインジェクションペイロードを入力します：
-   ```
-   ' UNION SELECT table_name, column_name FROM information_schema.columns WHERE table_schema = 'vuln_app' --
-   ```
-3. パスワードフィールドには任意の値を入力します
-4. ログインボタンをクリックします
-
-このペイロードは、データベースのスキーマ情報を取得しようとします。エラーメッセージが表示される場合は、そのエラーメッセージからデータベース構造に関する情報が漏洩している可能性があります。
+現在の実装では、入力されたユーザーIDに基づいてトークンが生成されるため、任意のユーザーとしてログインできます。
 
 ## 攻撃成功の確認手順
 
 ### 1. 認証バイパスの確認
 
-1. 上記のペイロードを使用してログインを試みます
+1. 任意のユーザーID（例：`admin`、`alice`、`bob`など）でログインを試みます
 2. ログイン後、ダッシュボードやプロフィールページなど、認証が必要なページにアクセスできることを確認します
 3. ページ上にユーザー名やプロフィール情報が表示されていることを確認します
 
-### 2. エラーメッセージからの情報漏洩の確認
-
-1. 意図的に不正なSQLインジェクションペイロードを入力します（例：`' OR 1=1;`）
-2. エラーメッセージが表示される場合、そのメッセージにデータベース情報（テーブル名、カラム名、SQLクエリの構造など）が含まれていないか確認します
-
-### 3. ブラウザの開発者ツールでのレスポンス確認
+### 2. ブラウザの開発者ツールでのレスポンス確認
 
 1. ブラウザの開発者ツールを開きます（F12キー）
 2. 「Network」タブを選択します
-3. SQLインジェクションペイロードを使用してログインを試みます
+3. 任意のユーザーIDでログインを試みます
 4. ログインリクエストのレスポンスを確認し、認証トークンや成功メッセージが含まれているか確認します
 
 ## 対策方法
-### 1. プリペアドステートメントの使用
+### 1. 適切なユーザー認証の実装
 ```go
-// 修正前（脆弱なコード）
-query := fmt.Sprintf("SELECT id, nickname FROM users WHERE id = '%s' AND password = SHA2('%s', 256)", 
-    credentials.ID, credentials.Password)
+// 修正前（現在のコード）
+// For testing, accept any user_id and return a simple token
+log.Printf("Login successful for user: %s", credentials.UserID)
+c.JSON(http.StatusOK, gin.H{
+    "token": credentials.UserID + "_token",
+    "user": models.User{
+        ID:       credentials.UserID,
+        Nickname: credentials.UserID,
+    },
+})
 
 // 修正後（安全なコード）
 query := "SELECT id, nickname FROM users WHERE id = ? AND password = SHA2(?, 256)"
-err := db.QueryRow(query, credentials.ID, credentials.Password).Scan(&user.ID, &user.Nickname)
+var user models.User
+err := h.db.QueryRow(query, credentials.UserID, credentials.Password).Scan(&user.ID, &user.Nickname)
+if err != nil {
+    if err == sql.ErrNoRows {
+        c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid credentials"})
+        return
+    }
+    log.Printf("Database error: %v", err)
+    c.JSON(http.StatusInternalServerError, gin.H{"error": "Internal server error"})
+    return
+}
+
+// トークン生成（JWTなどを使用）
+token := generateSecureToken(user.ID)
+c.JSON(http.StatusOK, gin.H{
+    "token": token,
+    "user": user,
+})
 ```
 
 ### 2. 環境変数を使用したデータベース接続設定
