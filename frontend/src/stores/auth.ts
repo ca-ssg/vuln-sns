@@ -1,9 +1,8 @@
 import { defineStore } from 'pinia'
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed } from 'vue'
 import axios from 'axios'
 
-// Hardcoded API URL for now
-// In production, this would be set from environment variables
+// API URL for the backend
 const apiUrl = '/api'
 
 export const axiosInstance = axios.create({
