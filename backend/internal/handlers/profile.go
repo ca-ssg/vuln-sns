@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"database/sql"
 	"encoding/base64"
 	"fmt"
 	"log"
@@ -65,42 +66,71 @@ func (h *Handler) UploadAvatar(c *gin.Context) {
 		return
 	}
 
-	// アップロードディレクトリの作成
+	// 一時ディレクトリの作成（ウィルススキャン用）
 	uploadDir := "/tmp/avatars"
 	if err := os.MkdirAll(uploadDir, 0755); err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to create upload directory"})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to create temporary directory"})
 		return
 	}
 
-	// ファイルの保存
+	// 一時ファイルの保存（ウィルススキャン用）
 	filePath := filepath.Join(uploadDir, req.FileID)
 	if err := os.WriteFile(filePath, imageData, 0644); err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to save file"})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to save temporary file"})
 		return
 	}
+	defer os.Remove(filePath) // 処理完了後に一時ファイルを削除
 
 	// 脆弱性: OSコマンドインジェクション
 	// ユーザー入力（FileID）を適切にエスケープせずにコマンドに渡している
 	if err := scanFile(filePath); err != nil {
-		os.Remove(filePath)
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Virus detected or scan failed"})
 		return
 	}
 
-	// データベースの更新
-	stmt, err := h.db.Prepare("UPDATE users SET avatar_path = ? WHERE id = ?")
+	// データベースに画像データを直接保存
+	stmt, err := h.db.Prepare("UPDATE users SET avatar_data = ? WHERE id = ?")
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "データベース準備エラー"})
 		return
 	}
 	defer stmt.Close()
-	_, err = stmt.Exec(filePath, userID)
+	
+	// Base64エンコードしたデータをそのまま保存
+	_, err = stmt.Exec(req.ImageData, userID)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update profile"})
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"message": "Avatar uploaded successfully", "avatar_path": filePath})
+	c.JSON(http.StatusOK, gin.H{"message": "Avatar uploaded successfully", "avatar_data": req.ImageData})
+}
+
+// GetProfile - ユーザープロフィール情報を取得
+func (h *Handler) GetProfile(c *gin.Context) {
+	userID := c.GetString("user_id")
+	if userID == "" {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized"})
+		return
+	}
+
+	// ユーザー情報を取得
+	query := "SELECT id, nickname, avatar_data FROM users WHERE id = ?"
+	row := h.db.QueryRow(query, userID)
+
+	var user models.User
+	var avatarData sql.NullString
+	err := row.Scan(&user.ID, &user.Nickname, &avatarData)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to get profile"})
+		return
+	}
+
+	if avatarData.Valid {
+		user.AvatarData = avatarData.String
+	}
+
+	c.JSON(http.StatusOK, user)
 }
 
 // ウィルススキャン関数（脆弱性あり）

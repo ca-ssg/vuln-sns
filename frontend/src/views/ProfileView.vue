@@ -4,6 +4,10 @@
     <div class="profile-header q-px-md q-py-lg">
       <div class="row justify-between items-center">
         <div>
+          <!-- アバター画像の表示 -->
+          <div v-if="authStore.user?.avatar_data" class="q-mb-md">
+            <img :src="`data:image/jpeg;base64,${authStore.user.avatar_data}`" style="max-width: 100px; max-height: 100px; border-radius: 50%;" />
+          </div>
           <!-- XSS脆弱性: ユーザー入力を適切にエスケープせずに表示 -->
           <div class="text-h4 text-weight-bold q-mb-sm" v-html="authStore.user?.nickname"></div>
           <div class="text-grey-6">@{{ authStore.user?.id }}</div>

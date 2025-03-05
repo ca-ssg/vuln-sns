@@ -111,6 +111,7 @@ func main() {
 		protected.DELETE("/posts/:id/like", handler.UnlikePost)
 		protected.PUT("/profile", handler.UpdateProfile)
 		protected.POST("/profile/avatar", handler.UploadAvatar)
+		protected.GET("/profile", handler.GetProfile)
 	}
 	log.Printf("Routes registered successfully")
 	log.Printf("Starting server on port %s", port)

@@ -9,7 +9,7 @@ type User struct {
 	ID         string `json:"id"`
 	Password   string `json:"password,omitempty"`
 	Nickname   string `json:"nickname"`
-	AvatarPath string `json:"avatar_path"`
+	AvatarData string `json:"avatar_data"`
 }
 
 type LoginRequest struct {

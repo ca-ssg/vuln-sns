@@ -22,7 +22,7 @@ axiosInstance.interceptors.request.use(config => {
 interface User {
   id: string
   nickname?: string
-  avatar_path?: string
+  avatar_data?: string
 }
 
 export const useAuthStore = defineStore('auth', () => {
@@ -106,8 +106,8 @@ export const useAuthStore = defineStore('auth', () => {
 
       const data = response.data
 
-      if (user.value && data.avatar_path) {
-        const updatedUser: User = { ...user.value, avatar_path: data.avatar_path }
+      if (user.value && data.avatar_data) {
+        const updatedUser: User = { ...user.value, avatar_data: data.avatar_data }
         user.value = updatedUser
         localStorage.setItem('user', JSON.stringify(updatedUser))
         return true

