@@ -110,6 +110,7 @@ func main() {
 		protected.POST("/posts/:id/like", handler.LikePost)
 		protected.DELETE("/posts/:id/like", handler.UnlikePost)
 		protected.PUT("/profile", handler.UpdateProfile)
+		protected.POST("/profile/avatar", handler.UploadAvatar)
 	}
 	log.Printf("Routes registered successfully")
 	log.Printf("Starting server on port %s", port)

@@ -6,9 +6,10 @@ import (
 )
 
 type User struct {
-	ID       string `json:"id"`
-	Password string `json:"password,omitempty"`
-	Nickname string `json:"nickname"`
+	ID         string `json:"id"`
+	Password   string `json:"password,omitempty"`
+	Nickname   string `json:"nickname"`
+	AvatarPath string `json:"avatar_path"`
 }
 
 type LoginRequest struct {
@@ -18,6 +19,11 @@ type LoginRequest struct {
 
 type UpdateNicknameRequest struct {
 	Nickname string `json:"nickname" binding:"required"`
+}
+
+type UploadAvatarRequest struct {
+	FileID    string `json:"file_id" binding:"required"`
+	ImageData string `json:"image_data" binding:"required"`
 }
 
 // HashPassword - パスワードをSHA256でハッシュ化

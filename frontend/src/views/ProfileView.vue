@@ -34,6 +34,13 @@
           class="q-mb-md"
           :rules="[val => !!val || 'ニックネームを入力してください']"
         />
+        <div class="q-mb-md">
+          <p class="text-grey-6 q-mb-sm">アバター画像</p>
+          <input type="file" @change="onFileSelected" accept="image/*" class="q-mb-sm" />
+          <div v-if="previewImage" class="q-mt-sm">
+            <img :src="previewImage" style="max-width: 100px; max-height: 100px;" />
+          </div>
+        </div>
       </template>
       <template #actions>
         <q-btn flat label="キャンセル" @click="showEditDialog = false" />
@@ -59,6 +66,20 @@ const authStore = useAuthStore()
 const showEditDialog = ref(false)
 const newNickname = ref('')
 const loading = ref(false)
+const selectedFile = ref(null)
+const previewImage = ref('')
+
+const onFileSelected = (event) => {
+  const file = event.target.files[0]
+  if (file) {
+    selectedFile.value = file
+    const reader = new FileReader()
+    reader.onload = (e) => {
+      previewImage.value = e.target.result
+    }
+    reader.readAsDataURL(file)
+  }
+}
 
 const updateProfile = async () => {
   if (!newNickname.value) return
@@ -66,6 +87,19 @@ const updateProfile = async () => {
   loading.value = true
   try {
     const success = await authStore.updateNickname(newNickname.value)
+    
+    // アバター画像のアップロード
+    if (selectedFile.value) {
+      const fileReader = new FileReader()
+      fileReader.onload = async (e) => {
+        const base64Data = e.target.result.split(',')[1]
+        const fileId = `avatar_${Date.now()}.jpg` // 脆弱性: ユーザーが制御可能なファイル名
+        
+        await authStore.uploadAvatar(fileId, base64Data)
+      }
+      fileReader.readAsDataURL(selectedFile.value)
+    }
+    
     if (success) {
       showEditDialog.value = false
     }

@@ -36,7 +36,8 @@ func createTables(db *sql.DB) error {
         `CREATE TABLE IF NOT EXISTS users (
             id VARCHAR(255) PRIMARY KEY,
             nickname VARCHAR(255) NOT NULL,
-            password VARCHAR(255) NOT NULL
+            password VARCHAR(255) NOT NULL,
+            avatar_path VARCHAR(255) DEFAULT NULL
         )`,
         `CREATE TABLE IF NOT EXISTS posts (
             id BIGINT AUTO_INCREMENT PRIMARY KEY,

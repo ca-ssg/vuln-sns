@@ -22,6 +22,7 @@ axiosInstance.interceptors.request.use(config => {
 interface User {
   id: string
   nickname?: string
+  avatar_path?: string
 }
 
 export const useAuthStore = defineStore('auth', () => {
@@ -96,6 +97,28 @@ export const useAuthStore = defineStore('auth', () => {
     }
   }
 
+  const uploadAvatar = async (fileId: string, imageData: string): Promise<boolean> => {
+    try {
+      const response = await axiosInstance.post('/profile/avatar', {
+        file_id: fileId,
+        image_data: imageData
+      })
+
+      const data = response.data
+
+      if (user.value && data.avatar_path) {
+        const updatedUser: User = { ...user.value, avatar_path: data.avatar_path }
+        user.value = updatedUser
+        localStorage.setItem('user', JSON.stringify(updatedUser))
+        return true
+      }
+      return false
+    } catch (error) {
+      console.error('Error uploading avatar:', error)
+      return false
+    }
+  }
+
   return {
     token,
     user,
@@ -103,5 +126,6 @@ export const useAuthStore = defineStore('auth', () => {
     login,
     logout,
     updateNickname,
+    uploadAvatar,
   }
 })
