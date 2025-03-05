@@ -19,6 +19,7 @@
     "@vue/shared": "^3.5.13",
     "@vueuse/core": "^10.7.2",
     "axios": "^1.6.7",
+    "crypto-js": "^4.2.0",
     "pinia": "^2.1.7",
     "quasar": "^2.14.3",
     "sass": "^1.70.0",
@@ -28,6 +29,7 @@
   "devDependencies": {
     "@quasar/vite-plugin": "^1.6.0",
     "@tsconfig/node18": "^18.2.2",
+    "@types/crypto-js": "^4.2.2",
     "@types/node": "^20.17.19",
     "@vitejs/plugin-vue": "^4.6.2",
     "@vitejs/plugin-vue-jsx": "^3.1.0",
