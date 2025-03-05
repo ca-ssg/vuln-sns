@@ -70,6 +70,7 @@ func (h *PostHandler) CreatePost(c *gin.Context) {
 
 	result, err := h.db.Exec(query)
 	if err != nil {
+		log.Printf("Create Post Error: %v", err)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to create post"})
 		return
 	}
