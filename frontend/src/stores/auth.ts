@@ -22,13 +22,16 @@ export const useAuthStore = defineStore('auth', () => {
 
   const isAuthenticated = computed(() => !!token.value)
 
-  const login = async (username: string, password: string): Promise<void> => {
+  const login = async (id: string, password: string): Promise<void> => {
     loading.value = true
     error.value = null
     try {
-      const response = await axiosInstance.post('/login', { username, password })
+      console.log('Attempting login with:', { id, password })
+      const response = await axiosInstance.post('/login', { user_id: id, password })
+      console.log('Login response:', response.data)
+      
       token.value = response.data.token
-      user.value = username
+      user.value = id
       if (token.value) localStorage.setItem('token', token.value)
       if (user.value) localStorage.setItem('user', user.value)
       axiosInstance.defaults.headers.common['Authorization'] = `Bearer ${token.value}`

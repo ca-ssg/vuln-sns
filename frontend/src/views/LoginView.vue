@@ -72,8 +72,8 @@ const error = ref('')
 const handleLogin = async () => {
   error.value = ''
   try {
-    const success = await authStore.login(id.value, password.value)
-    if (success) {
+    await authStore.login(id.value, password.value)
+    if (authStore.isAuthenticated) {
       router.push('/')
     } else {
       error.value = 'ログインに失敗しました'
