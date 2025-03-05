@@ -60,7 +60,7 @@ docker-compose exec db mysql -u root -p
 データベースへの接続には以下のコマンドを使用します：
 
 ```bash
-docker-compose exec db mysql -uroot -ppassword -Dvuln_app
+docker-compose exec db mysql -uroot -ppassword -Dvuln_app  --default-character-set=utf8mb4
 ```
 
 認証情報:
