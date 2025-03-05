@@ -24,7 +24,9 @@ export const usePostsStore = defineStore('posts', () => {
     loading.value = true
     error.value = null
     try {
+      console.log('Fetching posts...')
       const response = await axios.get<Post[]>('/posts')
+      console.log('Posts response:', response.data)
       posts.value = response.data
     } catch (err) {
       console.error('Error fetching posts:', err)

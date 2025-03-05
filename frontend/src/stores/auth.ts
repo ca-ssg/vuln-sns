@@ -1,5 +1,5 @@
 import { defineStore } from 'pinia'
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import axios from 'axios'
 
 // Hardcoded API URL for now
@@ -60,8 +60,15 @@ export const useAuthStore = defineStore('auth', () => {
       token.value = storedToken
       user.value = storedUser
       axiosInstance.defaults.headers.common['Authorization'] = `Bearer ${token.value}`
+    } else {
+      // Set guest token for anonymous access
+      token.value = 'guest_token'
+      axiosInstance.defaults.headers.common['Authorization'] = `Bearer guest_token`
     }
   }
+
+  // Initialize auth on store creation
+  initAuth()
 
   return {
     user,

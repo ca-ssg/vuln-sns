@@ -5,4 +5,5 @@ export interface Post {
   createdAt: string
   likes: number
   isLiked: boolean
+  user_id?: string // For backward compatibility
 }

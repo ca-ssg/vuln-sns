@@ -2,11 +2,17 @@
 import { onMounted, watch } from 'vue'
 import { useRoute } from 'vue-router'
 import { usePostsStore } from '@/stores/posts'
+import { useAuthStore } from '@/stores/auth'
 
 const route = useRoute()
 const postsStore = usePostsStore()
+const authStore = useAuthStore()
 
 onMounted(async () => {
+  // Initialize auth if not already done
+  if (!authStore.isAuthenticated) {
+    authStore.initAuth()
+  }
   await postsStore.fetchPosts()
 })
 
@@ -31,9 +37,9 @@ watch(() => route.query.tag, async (newTag) => {
     <div v-else>
       <div v-for="post in postsStore.posts" :key="post.id" class="post">
         <div class="post-header">
-          <div class="post-avatar">{{ post.user_id.substring(0, 2).toUpperCase() }}</div>
-          <div class="post-user">{{ post.user_id }}</div>
-          <div class="post-actions" v-if="post.user_id === 'alice'">
+          <div class="post-avatar">{{ post.userId?.substring(0, 2).toUpperCase() || 'GU' }}</div>
+          <div class="post-user">{{ post.userId || 'Guest' }}</div>
+          <div class="post-actions" v-if="post.userId === authStore.user">
             <button @click="postsStore.showEditModal(post)">Edit</button>
             <button @click="postsStore.deletePost(post.id)">Delete</button>
           </div>
