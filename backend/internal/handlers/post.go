@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"log"
 	"net/http"
-	"strings"
 
 	"github.com/ca-ssg/devin-vuln-app/backend/internal/models"
 	"github.com/gin-gonic/gin"
@@ -161,17 +160,48 @@ func (h *PostHandler) LikePost(c *gin.Context) {
 		return
 	}
 
-	// Insert like, handle duplicate gracefully
-	_, err = h.db.Exec("INSERT INTO likes (user_id, post_id) VALUES (?, ?)", userID, postID)
+	// Check if already liked
+	var likeExists bool
+	err = h.db.QueryRow("SELECT EXISTS(SELECT 1 FROM likes WHERE post_id = ? AND user_id = ?)", postID, userID).Scan(&likeExists)
 	if err != nil {
-		if strings.Contains(err.Error(), "Duplicate entry") {
-			// Post is already liked, return success
-			c.JSON(http.StatusOK, gin.H{"message": "Post already liked"})
-			return
-		}
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to check like status"})
+		return
+	}
+
+	if likeExists {
+		// Post is already liked, return success
+		c.JSON(http.StatusOK, gin.H{"message": "Post already liked"})
+		return
+	}
+
+	// Start transaction
+	tx, err := h.db.Begin()
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to start transaction"})
+		return
+	}
+	defer tx.Rollback()
+
+	// Insert like
+	_, err = tx.Exec("INSERT INTO likes (user_id, post_id) VALUES (?, ?)", userID, postID)
+	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to like post"})
 		return
 	}
+
+	// Update likes count in posts table
+	_, err = tx.Exec("UPDATE posts SET likes = likes + 1 WHERE id = ?", postID)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update likes count"})
+		return
+	}
+
+	// Commit transaction
+	if err = tx.Commit(); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to commit transaction"})
+		return
+	}
+
 	c.JSON(http.StatusOK, gin.H{"message": "Post liked successfully"})
 }
 
@@ -187,15 +217,41 @@ func (h *PostHandler) UnlikePost(c *gin.Context) {
 	// Check if like exists
 	var likeExists bool
 	err := h.db.QueryRow("SELECT EXISTS(SELECT 1 FROM likes WHERE post_id = ? AND user_id = ?)", postID, userID).Scan(&likeExists)
-	if err != nil || !likeExists {
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to check like status"})
+		return
+	}
+
+	if !likeExists {
 		c.JSON(http.StatusNotFound, gin.H{"error": "Like not found"})
 		return
 	}
 
+	// Start transaction
+	tx, err := h.db.Begin()
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to start transaction"})
+		return
+	}
+	defer tx.Rollback()
+
 	// Delete like
-	_, err = h.db.Exec("DELETE FROM likes WHERE post_id = ? AND user_id = ?", postID, userID)
+	_, err = tx.Exec("DELETE FROM likes WHERE post_id = ? AND user_id = ?", postID, userID)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to unlike post"})
+		return
+	}
+
+	// Update likes count in posts table
+	_, err = tx.Exec("UPDATE posts SET likes = GREATEST(likes - 1, 0) WHERE id = ?", postID)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update likes count"})
+		return
+	}
+
+	// Commit transaction
+	if err = tx.Commit(); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to commit transaction"})
 		return
 	}
 
