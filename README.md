@@ -21,9 +21,11 @@ TwitterライクなSNSアプリケーションで、セキュリティ学習用�
 
 ## 初期アカウント
 
-```
-ID: alice
-パスワード: alice
+```markdown
+# ID/パスワード
+- alice/alice
+- bob/bob
+- charlie/charlie
 ```
 
 ## セットアップ

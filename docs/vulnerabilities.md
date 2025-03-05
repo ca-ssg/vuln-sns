@@ -5,6 +5,7 @@
 ## 認証機能の脆弱性
 - [ログイン機能のSQLインジェクション](auth/sqli-login.md)
 - [認証トークンの露出](auth/auth-token-exposure.md)
+- [パスワードのログ出力](auth/password-logging.md)
 
 ## 投稿機能の脆弱性
 - [投稿機能のSQLインジェクション](post/sqli-post.md)
