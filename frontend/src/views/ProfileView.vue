@@ -4,7 +4,8 @@
     <div class="profile-header q-px-md q-py-lg">
       <div class="row justify-between items-center">
         <div>
-          <div class="text-h4 text-weight-bold q-mb-sm">{{ authStore.user?.nickname || authStore.user?.id }}</div>
+          <!-- XSS脆弱性: ユーザー入力を適切にエスケープせずに表示 -->
+          <div class="text-h4 text-weight-bold q-mb-sm" v-html="authStore.user?.nickname"></div>
           <div class="text-grey-6">@{{ authStore.user?.id }}</div>
         </div>
         <q-btn
@@ -76,7 +77,7 @@ const updateProfile = async () => {
 }
 </script>
 
-<style scoped>
+<style>
 .profile-container {
   max-width: 600px;
   margin: 0 auto;
