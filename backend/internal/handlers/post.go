@@ -25,9 +25,11 @@ func (h *PostHandler) GetPosts(c *gin.Context) {
 	userID := c.GetString("user_id")
 	rows, err := h.db.Query(`
         SELECT p.id, p.user_id, p.content, p.created_at, p.updated_at,
-               (SELECT COUNT(*) FROM likes WHERE post_id = p.id) as likes,
-               EXISTS(SELECT 1 FROM likes WHERE post_id = p.id AND user_id = ?) as is_liked
+               COUNT(l.post_id) as likes,
+               MAX(CASE WHEN l.user_id = ? THEN 1 ELSE 0 END) as is_liked
         FROM posts p
+        LEFT OUTER JOIN likes l on p.id = l.post_id
+        GROUP BY p.id, p.user_id, p.content, p.created_at, p.updated_at
         ORDER BY p.created_at DESC
     `, userID)
 	if err != nil {
