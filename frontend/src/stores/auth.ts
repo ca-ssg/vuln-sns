@@ -29,8 +29,8 @@ export const useAuthStore = defineStore('auth', () => {
       const response = await axiosInstance.post('/login', { username, password })
       token.value = response.data.token
       user.value = username
-      localStorage.setItem('token', token.value)
-      localStorage.setItem('user', user.value)
+      if (token.value) localStorage.setItem('token', token.value)
+      if (user.value) localStorage.setItem('user', user.value)
       axiosInstance.defaults.headers.common['Authorization'] = `Bearer ${token.value}`
     } catch (err) {
       console.error('Login error:', err)

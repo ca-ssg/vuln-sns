@@ -1,7 +1,7 @@
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
 import { axiosInstance as axios } from './auth'
-import type { Post } from '../types/post'
+import type { Post } from '@/types/post'
 
 export const usePostsStore = defineStore('posts', () => {
   const posts = ref<Post[]>([])
