@@ -79,11 +79,9 @@ func main() {
 
 	// Initialize handlers with logging
 	log.Printf("Initializing handlers...")
-	authHandler := handlers.NewAuthHandler(db)
-	postHandler := handlers.NewPostHandler(db)
-	searchHandler := handlers.NewSearchHandler(db)
-	if searchHandler == nil {
-		log.Fatal("Failed to initialize search handler")
+	handler := handlers.NewHandler(db)
+	if handler == nil {
+		log.Fatal("Failed to initialize handler")
 	}
 	log.Printf("Handlers initialized successfully")
 
@@ -93,10 +91,10 @@ func main() {
 	// Public routes
 	r.GET("/api/search", func(c *gin.Context) {
 		log.Printf("Search endpoint hit with URL: %s", c.Request.URL.String())
-		searchHandler.SearchByHashtag(c)
+		handler.SearchByHashtag(c)
 	})
-	r.GET("/api/posts", postHandler.GetPosts)
-	r.POST("/api/login", authHandler.Login)
+	r.GET("/api/posts", handler.GetPosts)
+	r.POST("/api/login", handler.Login)
 	r.GET("/api/health", func(c *gin.Context) {
 		c.JSON(200, gin.H{"status": "ok"})
 	})
@@ -106,12 +104,12 @@ func main() {
 	protected.Use(middleware.Auth())
 	{
 		// protected.GET("/posts", postHandler.GetPosts)
-		protected.POST("/posts", postHandler.CreatePost)
-		protected.PUT("/posts/:id", postHandler.UpdatePost)
-		protected.DELETE("/posts/:id", postHandler.DeletePost)
-		protected.POST("/posts/:id/like", postHandler.LikePost)
-		protected.DELETE("/posts/:id/like", postHandler.UnlikePost)
-		protected.PUT("/profile", authHandler.UpdateProfile)
+		protected.POST("/posts", handler.CreatePost)
+		protected.PUT("/posts/:id", handler.UpdatePost)
+		protected.DELETE("/posts/:id", handler.DeletePost)
+		protected.POST("/posts/:id/like", handler.LikePost)
+		protected.DELETE("/posts/:id/like", handler.UnlikePost)
+		protected.PUT("/profile", handler.UpdateProfile)
 	}
 	log.Printf("Routes registered successfully")
 	log.Printf("Starting server on port %s", port)

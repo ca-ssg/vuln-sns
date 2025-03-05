@@ -1,38 +1,28 @@
 package handlers
 
 import (
-    "database/sql"
-    "fmt"
-    "log"
-    "net/http"
-    "github.com/gin-gonic/gin"
-    "github.com/ca-ssg/devin-vuln-app/backend/internal/models"
+	"fmt"
+	"log"
+	"net/http"
+
+	"github.com/ca-ssg/devin-vuln-app/backend/internal/models"
+	"github.com/gin-gonic/gin"
 )
 
-type SearchHandler struct {
-    db *sql.DB
-}
+func (h *Handler) SearchByHashtag(c *gin.Context) {
+	log.Printf("SearchByHashtag called with context: %+v", c.Request.URL)
 
-func NewSearchHandler(db *sql.DB) *SearchHandler {
-    return &SearchHandler{
-        db: db,
-    }
-}
+	hashtag := c.Query("tag")
+	if hashtag == "" {
+		log.Printf("No hashtag provided in request")
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Hashtag parameter is required"})
+		return
+	}
+	log.Printf("Searching for hashtag: %s", hashtag)
 
-func (h *SearchHandler) SearchByHashtag(c *gin.Context) {
-    log.Printf("SearchByHashtag called with context: %+v", c.Request.URL)
-    
-    hashtag := c.Query("tag")
-    if hashtag == "" {
-        log.Printf("No hashtag provided in request")
-        c.JSON(http.StatusBadRequest, gin.H{"error": "Hashtag parameter is required"})
-        return
-    }
-    log.Printf("Searching for hashtag: %s", hashtag)
-
-    // Intentionally vulnerable SQL query for learning purposes
-    userID := c.GetString("user_id")
-    query := fmt.Sprintf(`
+	// Intentionally vulnerable SQL query for learning purposes
+	userID := c.GetString("user_id")
+	query := fmt.Sprintf(`
         SELECT p.id, p.user_id, p.content, p.created_at, p.updated_at,
                (SELECT COUNT(*) FROM likes WHERE post_id = p.id) as likes,
                EXISTS(SELECT 1 FROM likes WHERE post_id = p.id AND user_id = '%s') as is_liked
@@ -41,25 +31,25 @@ func (h *SearchHandler) SearchByHashtag(c *gin.Context) {
         ORDER BY p.created_at DESC
     `, userID, hashtag)
 
-    log.Printf("Executing search query: %s", query)
-    rows, err := h.db.Query(query)
-    if err != nil {
-        log.Printf("Error searching posts: %v", err)
-        c.JSON(http.StatusInternalServerError, gin.H{"error": fmt.Sprintf("Failed to search posts: %v", err)})
-        return
-    }
-    defer rows.Close()
+	log.Printf("Executing search query: %s", query)
+	rows, err := h.db.Query(query)
+	if err != nil {
+		log.Printf("Error searching posts: %v", err)
+		c.JSON(http.StatusInternalServerError, gin.H{"error": fmt.Sprintf("Failed to search posts: %v", err)})
+		return
+	}
+	defer rows.Close()
 
-    var posts []models.Post
-    for rows.Next() {
-        var post models.Post
-        err := rows.Scan(&post.ID, &post.UserID, &post.Content, &post.CreatedAt, &post.UpdatedAt, &post.Likes, &post.IsLiked)
-        if err != nil {
-            log.Printf("Error scanning post: %v", err)
-            continue
-        }
-        posts = append(posts, post)
-    }
+	var posts []models.Post
+	for rows.Next() {
+		var post models.Post
+		err := rows.Scan(&post.ID, &post.UserID, &post.Content, &post.CreatedAt, &post.UpdatedAt, &post.Likes, &post.IsLiked)
+		if err != nil {
+			log.Printf("Error scanning post: %v", err)
+			continue
+		}
+		posts = append(posts, post)
+	}
 
-    c.JSON(http.StatusOK, posts)
+	c.JSON(http.StatusOK, posts)
 }

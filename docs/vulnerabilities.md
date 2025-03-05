@@ -12,10 +12,8 @@
 - [投稿表示機能のXSS](post/xss-post.md)
 
 ## プロフィール機能の脆弱性
-- [プロフィール機能のSQLインジェクション](profile/sqli-profile.md)
 - [プロフィール表示機能のXSS](profile/xss-profile.md)
 - [プロフィール更新機能のCSRF](profile/csrf-profile.md)
-- [プロフィール更新機能のSQLインジェクション](profile/injection-profile-update.md)
 
 ## 検索機能の脆弱性
 - [検索機能のSQLインジェクション](search/sqli-search.md)

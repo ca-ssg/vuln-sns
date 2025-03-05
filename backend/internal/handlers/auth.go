@@ -10,17 +10,7 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-type AuthHandler struct {
-	db *sql.DB
-}
-
-func NewAuthHandler(db *sql.DB) *AuthHandler {
-	return &AuthHandler{
-		db: db,
-	}
-}
-
-func (h *AuthHandler) Login(c *gin.Context) {
+func (h *Handler) Login(c *gin.Context) {
 	log.Printf("Login attempt")
 	var credentials struct {
 		UserID   string `json:"user_id"`
@@ -61,33 +51,4 @@ func (h *AuthHandler) Login(c *gin.Context) {
 			Nickname: user.Nickname,
 		},
 	})
-}
-
-func (h *AuthHandler) UpdateProfile(c *gin.Context) {
-	userID := c.GetString("user_id")
-	if userID == "" {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized"})
-		return
-	}
-
-	var profile struct {
-		Nickname string `json:"nickname"`
-	}
-
-	if err := c.BindJSON(&profile); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request body"})
-		return
-	}
-
-	// Intentionally vulnerable SQL query
-	query := "UPDATE users SET nickname = '" + profile.Nickname + "' WHERE id = '" + userID + "'"
-	log.Printf("Executing query: %s", query)
-
-	_, err := h.db.Exec(query)
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update profile"})
-		return
-	}
-
-	c.JSON(http.StatusOK, gin.H{"message": "Profile updated successfully"})
 }

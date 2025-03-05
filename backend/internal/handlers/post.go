@@ -1,7 +1,6 @@
 package handlers
 
 import (
-	"database/sql"
 	"fmt"
 	"log"
 	"net/http"
@@ -11,17 +10,7 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-type PostHandler struct {
-	db *sql.DB
-}
-
-func NewPostHandler(db *sql.DB) *PostHandler {
-	return &PostHandler{
-		db: db,
-	}
-}
-
-func (h *PostHandler) GetPosts(c *gin.Context) {
+func (h *Handler) GetPosts(c *gin.Context) {
 	userID := c.GetString("user_id")
 	rows, err := h.db.Query(`
         SELECT p.id, p.user_id, p.content, p.created_at, p.updated_at,
@@ -51,7 +40,7 @@ func (h *PostHandler) GetPosts(c *gin.Context) {
 	c.JSON(http.StatusOK, posts)
 }
 
-func (h *PostHandler) CreatePost(c *gin.Context) {
+func (h *Handler) CreatePost(c *gin.Context) {
 	userID := c.GetString("user_id")
 	if userID == "" {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized"})
@@ -82,7 +71,7 @@ func (h *PostHandler) CreatePost(c *gin.Context) {
 	c.JSON(http.StatusCreated, post)
 }
 
-func (h *PostHandler) UpdatePost(c *gin.Context) {
+func (h *Handler) UpdatePost(c *gin.Context) {
 	userID := c.GetString("user_id")
 	if userID == "" {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized"})
@@ -117,7 +106,7 @@ func (h *PostHandler) UpdatePost(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"message": "Post updated successfully"})
 }
 
-func (h *PostHandler) DeletePost(c *gin.Context) {
+func (h *Handler) DeletePost(c *gin.Context) {
 	userID := c.GetString("user_id")
 	if userID == "" {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized"})
@@ -147,7 +136,7 @@ func (h *PostHandler) DeletePost(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"message": "Post deleted successfully"})
 }
 
-func (h *PostHandler) LikePost(c *gin.Context) {
+func (h *Handler) LikePost(c *gin.Context) {
 	userID := c.GetString("user_id")
 	if userID == "" {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized"})
@@ -178,7 +167,7 @@ func (h *PostHandler) LikePost(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"message": "Post liked successfully"})
 }
 
-func (h *PostHandler) UnlikePost(c *gin.Context) {
+func (h *Handler) UnlikePost(c *gin.Context) {
 	userID := c.GetString("user_id")
 	if userID == "" {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized"})
