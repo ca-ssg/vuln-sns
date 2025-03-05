@@ -25,7 +25,7 @@ export const usePostsStore = defineStore('posts', () => {
     error.value = null
     try {
       console.log('Fetching posts...')
-      const response = await axios.get<Post[]>('/posts')
+      const response = await axios.get<Post[]>('/api/posts')
       console.log('Posts response:', response.data)
       posts.value = response.data
     } catch (err) {
@@ -40,7 +40,7 @@ export const usePostsStore = defineStore('posts', () => {
     loading.value = true
     error.value = null
     try {
-      const response = await axios.post<Post>('/posts', { content })
+      const response = await axios.post<Post>('/api/posts', { content })
       posts.value.unshift(response.data)
     } catch (err) {
       console.error('Error creating post:', err)
@@ -54,7 +54,7 @@ export const usePostsStore = defineStore('posts', () => {
     loading.value = true
     error.value = null
     try {
-      await axios.put(`/posts/${id}`, { content })
+      await axios.put(`/api/posts/${id}`, { content })
       const index = posts.value.findIndex((post: Post) => post.id === id)
       if (index !== -1) {
         posts.value[index].content = content
@@ -71,7 +71,7 @@ export const usePostsStore = defineStore('posts', () => {
     loading.value = true
     error.value = null
     try {
-      await axios.delete(`/posts/${id}`)
+      await axios.delete(`/api/posts/${id}`)
       posts.value = posts.value.filter((post: Post) => post.id !== id)
     } catch (err) {
       console.error('Error deleting post:', err)
@@ -83,7 +83,7 @@ export const usePostsStore = defineStore('posts', () => {
 
   const likePost = async (id: number): Promise<void> => {
     try {
-      const response = await axios.post(`/posts/${id}/like`, {})
+      const response = await axios.post(`/api/posts/${id}/like`, {})
       const post = posts.value.find((p: Post) => p.id === id)
       if (post) {
         // Only increment likes if this is a new like (not a duplicate)
@@ -102,7 +102,7 @@ export const usePostsStore = defineStore('posts', () => {
     loading.value = true
     error.value = null
     try {
-      const response = await axios.get<Post[]>('/search', {
+      const response = await axios.get<Post[]>('/api/search', {
         params: { tag }
       })
       
@@ -125,7 +125,7 @@ export const usePostsStore = defineStore('posts', () => {
 
   const unlikePost = async (id: number): Promise<void> => {
     try {
-      await axios.delete(`/posts/${id}/like`)
+      await axios.delete(`/api/posts/${id}/like`)
       const post = posts.value.find((p: Post) => p.id === id)
       if (post && post.isLiked) {
         post.likes--
