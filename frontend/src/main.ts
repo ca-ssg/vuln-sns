@@ -38,5 +38,6 @@ app.use(Quasar, {
 
 // Initialize the auth store
 const authStore = useAuthStore()
+authStore.initAuth()
 
 app.mount('#app')
