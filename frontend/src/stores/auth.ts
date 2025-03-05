@@ -13,6 +13,15 @@ export const axiosInstance = axios.create({
   }
 })
 
+// Add auth header to all requests
+axiosInstance.interceptors.request.use(config => {
+  const storedToken = localStorage.getItem('token')
+  if (storedToken) {
+    config.headers.Authorization = `Bearer ${storedToken}`
+  }
+  return config
+})
+
 export const useAuthStore = defineStore('auth', () => {
   const user = ref<string | null>(null)
   const token = ref<string | null>(null)
@@ -25,8 +34,12 @@ export const useAuthStore = defineStore('auth', () => {
     loading.value = true
     error.value = null
     try {
-      console.log('Attempting login with:', { id, password })
-      const response = await axiosInstance.post('/login', { user_id: id, password })
+      console.log('Attempting login with:', { id })
+      
+      const response = await axiosInstance.post('/login', { 
+        user_id: id, 
+        password: password 
+      })
       console.log('Login response:', response.data)
       
       token.value = response.data.token
@@ -62,6 +75,7 @@ export const useAuthStore = defineStore('auth', () => {
     } else {
       // Set guest token for anonymous access
       token.value = 'guest_token'
+      user.value = 'guest'
       axiosInstance.defaults.headers.common['Authorization'] = `Bearer guest_token`
     }
   }
