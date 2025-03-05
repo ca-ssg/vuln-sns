@@ -2,12 +2,8 @@ import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
 import axios from 'axios'
 
-// Hardcoded API URL for now
-// In production, this would be set from environment variables
-const apiUrl = '/api'
-
 export const axiosInstance = axios.create({
-  baseURL: apiUrl,
+  baseURL: import.meta.env.VITE_API_URL,
   withCredentials: true,
   headers: {
     'Content-Type': 'application/json'
