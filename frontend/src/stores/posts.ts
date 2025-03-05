@@ -1,135 +1,154 @@
 import { defineStore } from 'pinia'
-import { axiosInstance as axios } from './auth'
+import { ref, computed } from 'vue'
+import axios from '../plugins/axios'
+import type { Post } from '../types/post'
 
-interface Post {
-  id: number
-  userId: string
-  content: string
-  createdAt: string
-  likes: number
-  isLiked: boolean
-}
+export const usePostsStore = defineStore('posts', () => {
+  const posts = ref<Post[]>([])
+  const loading = ref(false)
+  const error = ref<string | null>(null)
+  const editModalVisible = ref(false)
+  const currentPost = ref<Post | null>(null)
 
-interface PostsState {
-  posts: Post[]
-  loading: boolean
-  error: string | null
-}
+  const showEditModal = (post: Post) => {
+    currentPost.value = { ...post }
+    editModalVisible.value = true
+  }
 
-export const usePostsStore = defineStore('posts', {
-  state: (): PostsState => ({
-    posts: [],
-    loading: false,
-    error: null
-  }),
+  const hideEditModal = () => {
+    editModalVisible.value = false
+    currentPost.value = null
+  }
 
-  actions: {
-    async fetchPosts(): Promise<void> {
-      this.loading = true
-      try {
-        const response = await axios.get<Post[]>('/posts')
-        this.posts = response.data
-      } catch (error) {
-        console.error('Error fetching posts:', error)
-        this.error = 'Failed to fetch posts'
-      } finally {
-        this.loading = false
+  const fetchPosts = async (): Promise<void> => {
+    loading.value = true
+    error.value = null
+    try {
+      const response = await axios.get<Post[]>('/posts')
+      posts.value = response.data
+    } catch (err) {
+      console.error('Error fetching posts:', err)
+      error.value = 'Failed to fetch posts'
+    } finally {
+      loading.value = false
+    }
+  }
+
+  const createPost = async (content: string): Promise<void> => {
+    loading.value = true
+    error.value = null
+    try {
+      const response = await axios.post<Post>('/posts', { content })
+      posts.value.unshift(response.data)
+    } catch (err) {
+      console.error('Error creating post:', err)
+      error.value = 'Failed to create post'
+    } finally {
+      loading.value = false
+    }
+  }
+
+  const updatePost = async (id: number, content: string): Promise<void> => {
+    loading.value = true
+    error.value = null
+    try {
+      await axios.put(`/posts/${id}`, { content })
+      const index = posts.value.findIndex((post: Post) => post.id === id)
+      if (index !== -1) {
+        posts.value[index].content = content
       }
-    },
+    } catch (err) {
+      console.error('Error updating post:', err)
+      error.value = 'Failed to update post'
+    } finally {
+      loading.value = false
+    }
+  }
 
-    async createPost(content: string): Promise<void> {
-      this.loading = true
-      try {
-        const response = await axios.post<Post>('/posts', { content })
-        this.posts.unshift(response.data)
-      } catch (error) {
-        console.error('Error creating post:', error)
-        this.error = 'Failed to create post'
-      } finally {
-        this.loading = false
-      }
-    },
+  const deletePost = async (id: number): Promise<void> => {
+    loading.value = true
+    error.value = null
+    try {
+      await axios.delete(`/posts/${id}`)
+      posts.value = posts.value.filter((post: Post) => post.id !== id)
+    } catch (err) {
+      console.error('Error deleting post:', err)
+      error.value = 'Failed to delete post'
+    } finally {
+      loading.value = false
+    }
+  }
 
-    async updatePost(id: number, content: string): Promise<void> {
-      this.loading = true
-      try {
-        await axios.put(`/posts/${id}`, { content })
-        const index = this.posts.findIndex((post: Post) => post.id === id)
-        if (index !== -1) {
-          this.posts[index].content = content
-        }
-      } catch (error) {
-        console.error('Error updating post:', error)
-        this.error = 'Failed to update post'
-      } finally {
-        this.loading = false
-      }
-    },
-
-    async deletePost(id: number): Promise<void> {
-      this.loading = true
-      try {
-        await axios.delete(`/posts/${id}`)
-        this.posts = this.posts.filter((post: Post) => post.id !== id)
-      } catch (error) {
-        console.error('Error deleting post:', error)
-        this.error = 'Failed to delete post'
-      } finally {
-        this.loading = false
-      }
-    },
-
-    async likePost(id: number): Promise<void> {
-      try {
-        const response = await axios.post(`/posts/${id}/like`, {})
-        const post = this.posts.find((p: Post) => p.id === id)
-        if (post) {
-          // Only increment likes if this is a new like (not a duplicate)
-          if (response.status === 200 && !post.isLiked) {
-            post.likes++
-          }
+  const likePost = async (id: number): Promise<void> => {
+    try {
+      const response = await axios.post(`/posts/${id}/like`, {})
+      const post = posts.value.find((p: Post) => p.id === id)
+      if (post) {
+        // Only increment likes if this is a new like (not a duplicate)
+        if (response.status === 200 && !post.isLiked) {
+          post.likes++
           post.isLiked = true
         }
-      } catch (error) {
-        console.error('Error liking post:', error)
-        this.error = 'Failed to like post'
       }
-    },
-
-    async searchByHashtag(tag: string): Promise<void> {
-      this.loading = true
-      try {
-        const response = await axios.get<Post[]>('/search', {
-          params: { tag }
-        })
-        const searchResults = response.data || []
-        
-        // 既存の投稿のisLikedプロパティを保持する
-        const existingPosts = [...this.posts]
-        this.posts = searchResults.map(newPost => {
-          const existingPost = existingPosts.find(p => p.id === newPost.id)
-          return existingPost ? { ...newPost, isLiked: existingPost.isLiked } : newPost
-        })
-      } catch (error) {
-        console.error('Error searching posts:', error)
-        this.error = 'Failed to search posts'
-      } finally {
-        this.loading = false
-      }
-    },
-
-    async unlikePost(id: number): Promise<void> {
-      try {
-        await axios.delete(`/posts/${id}/like`)
-        const post = this.posts.find((p: Post) => p.id === id)
-        if (post && post.isLiked) {
-          post.likes--
-          post.isLiked = false
-        }
-      } catch (error) {
-        console.error('Error unliking post:', error)
-        this.error = 'Failed to unlike post'
-      }
+    } catch (err) {
+      console.error('Error liking post:', err)
+      error.value = 'Failed to like post'
     }
+  }
+
+  const searchByHashtag = async (tag: string): Promise<void> => {
+    loading.value = true
+    error.value = null
+    try {
+      const response = await axios.get<Post[]>('/search', {
+        params: { tag }
+      })
+      
+      // Ensure searchResults is always an array
+      const searchResults = Array.isArray(response.data) ? response.data : []
+      
+      // 既存の投稿のisLikedプロパティを保持する
+      const existingPosts = [...posts.value]
+      posts.value = searchResults.map((newPost: Post) => {
+        const existingPost = existingPosts.find((p: Post) => p.id === newPost.id)
+        return existingPost ? { ...newPost, isLiked: existingPost.isLiked } : newPost
+      })
+    } catch (err) {
+      console.error('Error searching posts:', err)
+      error.value = 'Failed to search posts'
+    } finally {
+      loading.value = false
+    }
+  }
+
+  const unlikePost = async (id: number): Promise<void> => {
+    try {
+      await axios.delete(`/posts/${id}/like`)
+      const post = posts.value.find((p: Post) => p.id === id)
+      if (post && post.isLiked) {
+        post.likes--
+        post.isLiked = false
+      }
+    } catch (err) {
+      console.error('Error unliking post:', err)
+      error.value = 'Failed to unlike post'
+    }
+  }
+
+  return {
+    posts,
+    loading,
+    error,
+    editModalVisible,
+    currentPost,
+    fetchPosts,
+    createPost,
+    updatePost,
+    deletePost,
+    likePost,
+    unlikePost,
+    showEditModal,
+    hideEditModal,
+    searchByHashtag
   }
 })

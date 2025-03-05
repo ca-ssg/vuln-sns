@@ -14,98 +14,60 @@ export const axiosInstance = axios.create({
   }
 })
 
-// Add auth header to all requests
-axiosInstance.interceptors.request.use(config => {
-  const storedToken = localStorage.getItem('token')
-  if (storedToken) {
-    config.headers.Authorization = `Bearer ${storedToken}`
-  }
-  return config
-})
-
-interface User {
-  id: string
-  nickname?: string
-}
-
 export const useAuthStore = defineStore('auth', () => {
+  const user = ref<string | null>(null)
   const token = ref<string | null>(null)
-  const user = ref<User | null>(null)
-  
-  // Initialize from localStorage
-  try {
-    const storedToken = localStorage.getItem('token')
-    const storedUser = localStorage.getItem('user')
-    if (storedToken && storedUser) {
-      const parsedUser = JSON.parse(storedUser)
-      token.value = storedToken
-      user.value = parsedUser
-    }
-  } catch (e) {
-    console.error('Failed to parse stored user:', e)
-    localStorage.removeItem('token')
-    localStorage.removeItem('user')
-  }
+  const loading = ref(false)
+  const error = ref<string | null>(null)
 
-  const isAuthenticated = computed(() => !!token.value && !!user.value)
+  const isAuthenticated = computed(() => !!token.value)
 
-  const login = async (id: string, password: string): Promise<boolean> => {
+  const login = async (username: string, password: string): Promise<void> => {
+    loading.value = true
+    error.value = null
     try {
-      console.log('Attempting login with:', { id, password })
-      const response = await axiosInstance.post('/login', { user_id: id, password })
-
-      const data = response.data
-      console.log('Login response:', data)
-      
-      if (!data.token || !data.user) {
-        console.error('Invalid login response:', data)
-        return false
-      }
-
-      const tokenValue = data.token
-      token.value = tokenValue
-      user.value = data.user
-      localStorage.setItem('token', tokenValue)
-      localStorage.setItem('user', JSON.stringify(data.user))
-      return true
-    } catch (error) {
-      console.error('Login error:', error)
-      return false
+      const response = await axiosInstance.post('/login', { username, password })
+      token.value = response.data.token
+      user.value = username
+      localStorage.setItem('token', token.value)
+      localStorage.setItem('user', user.value)
+      axiosInstance.defaults.headers.common['Authorization'] = `Bearer ${token.value}`
+    } catch (err) {
+      console.error('Login error:', err)
+      error.value = 'Invalid username or password'
+      token.value = null
+      user.value = null
+    } finally {
+      loading.value = false
     }
   }
 
-  const logout = () => {
+  const logout = (): void => {
     token.value = null
     user.value = null
     localStorage.removeItem('token')
     localStorage.removeItem('user')
+    delete axiosInstance.defaults.headers.common['Authorization']
   }
 
-  const updateNickname = async (nickname: string): Promise<boolean> => {
-    try {
-      const response = await axiosInstance.put('/profile', { nickname })
-
-      const data = response.data
-
-      if (user.value) {
-        const updatedUser: User = { ...user.value, nickname }
-        user.value = updatedUser
-        localStorage.setItem('user', JSON.stringify(updatedUser))
-        return true
-      }
-      return false
-    } catch (error) {
-      console.error('Error updating nickname:', error)
-      return false
+  const initAuth = (): void => {
+    const storedToken = localStorage.getItem('token')
+    const storedUser = localStorage.getItem('user')
+    if (storedToken && storedUser) {
+      token.value = storedToken
+      user.value = storedUser
+      axiosInstance.defaults.headers.common['Authorization'] = `Bearer ${token.value}`
     }
   }
 
   return {
-    token,
     user,
+    token,
+    loading,
+    error,
     isAuthenticated,
     login,
     logout,
-    updateNickname,
+    initAuth
   }
 })
