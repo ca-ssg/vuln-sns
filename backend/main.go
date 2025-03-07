@@ -72,11 +72,6 @@ func main() {
 	}
 	database.DB = db
 
-	// Seed database with sample data
-	if err := database.SeedDatabase(db); err != nil {
-		log.Printf("Warning: Failed to seed database: %v", err)
-	}
-
 	// Initialize handlers with logging
 	log.Printf("Initializing handlers...")
 	handler := handlers.NewHandler(db)
@@ -110,6 +105,8 @@ func main() {
 		protected.POST("/posts/:id/like", handler.LikePost)
 		protected.DELETE("/posts/:id/like", handler.UnlikePost)
 		protected.PUT("/profile", handler.UpdateProfile)
+		protected.POST("/profile/avatar", handler.UploadAvatar)
+		protected.GET("/profile", handler.GetProfile)
 	}
 	log.Printf("Routes registered successfully")
 	log.Printf("Starting server on port %s", port)

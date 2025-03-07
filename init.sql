@@ -4,7 +4,8 @@ USE vuln_app;
 CREATE TABLE IF NOT EXISTS users (
     id VARCHAR(255) PRIMARY KEY,
     password VARCHAR(255) NOT NULL,
-    nickname VARCHAR(255)
+    nickname VARCHAR(255) NOT NULL,
+    avatar_data LONGTEXT DEFAULT NULL
 );
 
 CREATE TABLE IF NOT EXISTS posts (
