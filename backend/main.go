@@ -72,11 +72,6 @@ func main() {
 	}
 	database.DB = db
 
-	// Seed database with sample data
-	if err := database.SeedDatabase(db); err != nil {
-		log.Printf("Warning: Failed to seed database: %v", err)
-	}
-
 	// Initialize handlers with logging
 	log.Printf("Initializing handlers...")
 	handler := handlers.NewHandler(db)

