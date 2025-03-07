@@ -1,7 +1,6 @@
 package handlers
 
 import (
-	"database/sql"
 	"encoding/base64"
 	"fmt"
 	"net/http"
@@ -121,15 +120,10 @@ func (h *Handler) GetProfile(c *gin.Context) {
 	row := h.db.QueryRow(query, userID)
 
 	var user models.User
-	var avatarData sql.NullString
-	err := row.Scan(&user.ID, &user.Nickname, &avatarData)
+	err := row.Scan(&user.ID, &user.Nickname, &user.AvatarData)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to get profile"})
 		return
-	}
-
-	if avatarData.Valid {
-		user.AvatarData = avatarData.String
 	}
 
 	c.JSON(http.StatusOK, user)

@@ -6,10 +6,10 @@ import (
 )
 
 type User struct {
-	ID         string `json:"id"`
-	Password   string `json:"password,omitempty"`
-	Nickname   string `json:"nickname"`
-	AvatarData string `json:"avatar_data"`
+	ID         string  `json:"id"`
+	Password   string  `json:"password,omitempty"`
+	Nickname   string  `json:"nickname"`
+	AvatarData *string `json:"avatar_data,omitempty"`
 }
 
 type LoginRequest struct {
