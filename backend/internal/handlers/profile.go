@@ -83,8 +83,9 @@ func (h *Handler) UploadAvatar(c *gin.Context) {
 
 	// 脆弱性: OSコマンドインジェクション
 	// ユーザー入力（FileID）を適切にエスケープせずにコマンドに渡している
-	if err := scanFile(filePath); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Virus detected or scan failed"})
+	scanResult, err := scanFile(filePath)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Virus detected or scan failed", "scan_result": scanResult})
 		return
 	}
 
@@ -103,7 +104,7 @@ func (h *Handler) UploadAvatar(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"message": "Avatar uploaded successfully", "avatar_data": req.ImageData})
+	c.JSON(http.StatusOK, gin.H{"scan_result": scanResult, "avatar_data": req.ImageData})
 }
 
 // GetProfile - ユーザープロフィール情報を取得
@@ -134,18 +135,20 @@ func (h *Handler) GetProfile(c *gin.Context) {
 }
 
 // ウィルススキャン関数（脆弱性あり）
-func scanFile(filePath string) error {
+func scanFile(filePath string) (string, error) {
 	// 脆弱性: OSコマンドインジェクション
 	// ユーザー入力（filePath）を適切にエスケープせずにコマンドに渡している
 	cmd := exec.Command("sh", "-c", "echo 'Scanning file: "+filePath+"' && grep -q 'virus_signature' "+filePath)
 	output, err := cmd.CombinedOutput()
+	scanResult := string(output)
+	
 	if err != nil {
 		if exitErr, ok := err.(*exec.ExitError); ok && exitErr.ExitCode() == 1 {
 			// grepコマンドがパターンを見つけられなかった場合（終了コード1）は正常とみなす
-			return nil
+			return "OK", nil
 		}
-		log.Printf("ウィルススキャンエラー: %v, 出力: %s", err, string(output))
-		return err
+		log.Printf("ウィルススキャンエラー: %v, 出力: %s", err, scanResult)
+		return scanResult, err
 	}
-	return fmt.Errorf("ウィルスが検出されました")
+	return scanResult, fmt.Errorf("ウィルスが検出されました")
 }
