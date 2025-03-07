@@ -32,7 +32,7 @@
 1. アプリケーションのログイン画面にアクセスします
 2. ユーザーIDフィールドに以下のSQLインジェクションペイロードを入力します：
    ```
-   ' UNION SELECT table_name, column_name FROM information_schema.columns WHERE table_schema = DATABASE() -- 
+   ' UNION SELECT table_name, column_name, data_type FROM information_schema.columns WHERE table_schema = DATABASE() -- 
    ```
 3. パスワードフィールドには任意の値を入力します
 4. ログインボタンをクリックします
