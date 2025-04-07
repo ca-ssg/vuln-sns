@@ -29,7 +29,8 @@ export default defineConfig({
     hmr: {
       overlay: false,
       clientPort: 5173
-    }
+    },
+    allowedHosts: ['vuln-sns.ssg.isca.jp']
   },
   optimizeDeps: {
     include: ['@vue/runtime-core', '@vue/shared'],
