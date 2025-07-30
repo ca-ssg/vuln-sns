@@ -1,0 +1,66 @@
+id: vuln-sns-login-brute-force-protection
+info:
+  name: Vuln SNS Login - Brute Force Protection Check
+  author: claude
+  severity: medium
+  description: |
+    Tests if the login endpoint has adequate brute force protection.
+    Lack of rate limiting or account lockout mechanisms could allow
+    attackers to perform brute force attacks.
+  reference:
+    - https://owasp.org/www-community/controls/Blocking_Brute_Force_Attacks
+  tags: vuln-sns,brute-force,login,authentication
+
+http:
+  - method: POST
+    path:
+      - "{{BaseURL}}/api/login"
+
+    headers:
+      Content-Type: application/json
+
+    body: |
+      {"user_id":"alice","password":"wrongpassword{{i}}"}
+
+    attack: pitchfork
+    payloads:
+      i:
+        - 1
+        - 2
+        - 3
+        - 4
+        - 5
+        - 6
+        - 7
+        - 8
+        - 9
+        - 10
+
+    req-condition: true
+    stop-at-first-match: true
+    matchers-condition: or
+    matchers:
+      - type: dsl
+        dsl:
+          - 'status_code_10 == 200 || status_code_10 == 401'
+        condition: and
+        name: no-rate-limiting
+
+      - type: word
+        words:
+          - "too many requests"
+          - "rate limit"
+          - "temporarily blocked"
+          - "account locked"
+        condition: or
+        part: body
+        negative: true
+        name: no-protection-message
+
+    extractors:
+      - type: regex
+        name: response_times
+        regex:
+          - 'X-Response-Time: (\d+)'
+        part: header
+        internal: true

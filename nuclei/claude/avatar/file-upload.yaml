@@ -1,0 +1,115 @@
+id: vuln-sns-avatar-file-upload
+info:
+  name: Vuln SNS Avatar - File Upload Vulnerabilities
+  author: claude
+  severity: critical
+  description: |
+    Tests for file upload vulnerabilities in the avatar upload endpoint.
+    Checks for unrestricted file types, size limits, and malicious file handling.
+  reference:
+    - https://owasp.org/www-community/vulnerabilities/Unrestricted_File_Upload
+  tags: vuln-sns,file-upload,avatar,critical
+
+variables:
+  rand_str: "{{rand_base(8)}}"
+
+http:
+  - name: login
+    method: POST
+    path:
+      - "{{BaseURL}}/api/login"
+    headers:
+      Content-Type: application/json
+    body: |
+      {"user_id":"alice","password":"alice"}
+    extractors:
+      - type: json
+        name: token
+        json:
+          - '.token'
+        internal: true
+
+  - name: upload-php-file
+    method: POST
+    path:
+      - "{{BaseURL}}/api/profile/avatar"
+    headers:
+      Content-Type: application/json
+      Authorization: "Bearer {{token}}"
+    body: |
+      {
+        "file_id": "malicious_{{rand_str}}.php",
+        "image_data": "PD9waHAgZWNobyAnTWFsaWNpb3VzIFBIUCc7ID8+"
+      }
+    matchers-condition: or
+    matchers:
+      - type: word
+        words:
+          - "avatar_data"
+          - "malware_scan"
+        condition: and
+        part: body
+        name: php-file-accepted
+
+      - type: word
+        words:
+          - ".php"
+          - "<?php"
+        condition: or
+        part: body
+
+  - name: upload-large-file
+    method: POST
+    path:
+      - "{{BaseURL}}/api/profile/avatar"
+    headers:
+      Content-Type: application/json
+      Authorization: "Bearer {{token}}"
+    body: |
+      {
+        "file_id": "large_{{rand_str}}.jpg",
+        "image_data": "{{repeat('A', 10485760)}}"
+      }
+    matchers:
+      - type: status
+        status:
+          - 200
+          - 201
+        name: large-file-accepted
+
+  - name: upload-exe-file
+    method: POST
+    path:
+      - "{{BaseURL}}/api/profile/avatar"
+    headers:
+      Content-Type: application/json
+      Authorization: "Bearer {{token}}"
+    body: |
+      {
+        "file_id": "malware_{{rand_str}}.exe",
+        "image_data": "TVqQAAMAAAAEAAAA//8AALgAAAAAAAAAQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
+      }
+    matchers:
+      - type: word
+        words:
+          - "avatar_data"
+        part: body
+        name: exe-file-accepted
+
+  - name: upload-polyglot-file
+    method: POST
+    path:
+      - "{{BaseURL}}/api/profile/avatar"
+    headers:
+      Content-Type: application/json
+      Authorization: "Bearer {{token}}"
+    body: |
+      {
+        "file_id": "polyglot_{{rand_str}}.jpg",
+        "image_data": "/9j/4AAQSkZJRgABAQEAYABgAAD/2wBDAAP/7QAsUGhvdG9zaG9wPD94cGhwPz8="
+      }
+    matchers:
+      - type: word
+        words:
+          - "avatar_data"
+        part: body

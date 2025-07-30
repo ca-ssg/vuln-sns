@@ -1,0 +1,64 @@
+id: vuln-sns-health-error-disclosure
+info:
+  name: Vuln SNS Health Endpoint - Error Information Disclosure
+  author: claude
+  severity: low
+  description: |
+    Detects information disclosure through error messages in the health endpoint.
+    The endpoint may reveal sensitive information such as server details,
+    stack traces, or internal configurations.
+  reference:
+    - https://owasp.org/www-project-web-security-testing-guide/latest/4-Web_Application_Security_Testing/08-Testing_for_Error_Handling/01-Testing_for_Error_Codes
+  tags: vuln-sns,error,disclosure,health
+
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/api/health"
+      - "{{BaseURL}}/api/health?"
+      - "{{BaseURL}}/api/health?debug=true"
+      - "{{BaseURL}}/api/health?verbose=1"
+      - "{{BaseURL}}/api/health?_debug=on"
+
+    stop-at-first-match: true
+    matchers-condition: or
+    matchers:
+      - type: word
+        words:
+          - "stack trace"
+          - "traceback"
+          - "exception"
+          - "error occurred"
+          - "fatal error"
+          - "panic:"
+          - "runtime error"
+          - "debug mode"
+          - "development mode"
+        condition: or
+        part: body
+
+      - type: word
+        words:
+          - "mysql"
+          - "database connection"
+          - "connection refused"
+          - "connection timeout"
+          - "driver"
+        condition: or
+        part: body
+
+      - type: regex
+        regex:
+          - 'at\s+.*?\(.*?:\d+:\d+\)'
+          - 'File\s+".*?",\s+line\s+\d+'
+          - '\[error\].*?:[0-9]+'
+          - 'goroutine\s+\d+\s+\['
+        condition: or
+        part: body
+
+    extractors:
+      - type: regex
+        name: error_details
+        regex:
+          - '(?i)(error|exception|trace|debug).*'
+        part: body

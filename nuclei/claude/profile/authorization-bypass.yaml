@@ -1,0 +1,59 @@
+id: vuln-sns-profile-authorization-bypass
+info:
+  name: Vuln SNS Profile - Authorization Bypass
+  author: claude
+  severity: high
+  description: |
+    Tests for authorization bypass in profile endpoint.
+  reference:
+    - https://owasp.org/www-project-web-security-testing-guide/latest/4-Web_Application_Security_Testing/05-Authorization_Testing/
+  tags: vuln-sns,authorization,profile
+
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/api/profile"
+    headers:
+      Authorization: "Bearer {{token}}"
+
+    payloads:
+      token:
+        - "invalid_token"
+        - "admin_token"
+        - "root_token"
+        - ""
+
+    matchers:
+      - type: word
+        words:
+          - '"id":'
+          - '"nickname":'
+        condition: and
+        part: body
+
+  - raw:
+      - |
+        POST /api/login HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/json
+        
+        {"user_id":"alice","password":"alice"}
+        
+      - |
+        GET /api/profile HTTP/1.1
+        Host: {{Hostname}}
+        Authorization: Bearer bob_token
+
+    extractors:
+      - type: regex
+        name: alice_token
+        regex:
+          - '"token":\s*"([^"]+)"'
+        part: body_1
+        internal: true
+
+    matchers:
+      - type: word
+        words:
+          - '"id":"bob"'
+        part: body_2

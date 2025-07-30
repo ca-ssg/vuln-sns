@@ -1,0 +1,92 @@
+id: vuln-sns-login-weak-session-id
+info:
+  name: Vuln SNS Login - Weak Session ID Generation
+  author: claude
+  severity: high
+  description: |
+    Tests for weak or predictable session ID/token generation.
+    The application generates tokens in the format "userID_token",
+    which is highly predictable and insecure.
+  reference:
+    - https://owasp.org/www-community/vulnerabilities/Session_Prediction
+  tags: vuln-sns,session,weak-token,login
+
+http:
+  - method: POST
+    path:
+      - "{{BaseURL}}/api/login"
+
+    headers:
+      Content-Type: application/json
+
+    body: |
+      {"user_id":"{{user}}","password":"{{user}}"}
+
+    payloads:
+      user:
+        - "alice"
+        - "bob"
+        - "charlie"
+
+    req-condition: true
+    matchers-condition: and
+    matchers:
+      - type: word
+        words:
+          - '"token":'
+        part: body
+
+      - type: regex
+        regex:
+          - '"token":\s*"[a-zA-Z0-9]+_token"'
+        part: body
+
+      - type: dsl
+        dsl:
+          - 'contains(body_1, "alice_token")'
+          - 'contains(body_2, "bob_token")'
+          - 'contains(body_3, "charlie_token")'
+        condition: or
+        name: predictable-tokens
+
+    extractors:
+      - type: regex
+        name: weak_token
+        regex:
+          - '"token":\s*"([^"]+)"'
+        part: body
+
+  - method: POST
+    path:
+      - "{{BaseURL}}/api/login"
+
+    headers:
+      Content-Type: application/json
+
+    body: |
+      {"user_id":"alice","password":"alice"}
+
+    iterate-all: true
+    matchers:
+      - type: regex
+        regex:
+          - '"token":\s*"alice_token"'
+        part: body
+        name: hardcoded-token-format
+
+  - method: POST
+    path:
+      - "{{BaseURL}}/api/login"
+
+    headers:
+      Content-Type: application/json
+
+    body: |
+      {"user_id":"testuser","password":"testpass"}
+
+    matchers:
+      - type: regex
+        regex:
+          - '"token":\s*"testuser_token"'
+        part: body
+        name: predictable-pattern
