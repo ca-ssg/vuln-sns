@@ -1,0 +1,33 @@
+id: vuln-sns-health-https-enforcement
+
+info:
+  name: vuln-sns Health Endpoint HTTPS Enforcement
+  author: devin
+  severity: medium
+  description: Health endpoint accessible over HTTP without HTTPS enforcement
+  classification:
+    cvss-metrics: CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:L/I:L/A:N
+    cvss-score: 6.5
+    cwe-id: CWE-319
+  metadata:
+    max-request: 1
+  tags: https,ssl,health,vuln-sns
+
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/api/health"
+    
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      
+      - type: dsl
+        dsl:
+          - 'contains(tolower(BaseURL), "http://")'
+      
+      - type: dsl
+        dsl:
+          - '!contains(tolower(header), "strict-transport-security")'
