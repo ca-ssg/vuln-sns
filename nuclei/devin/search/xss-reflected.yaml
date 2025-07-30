@@ -1,0 +1,60 @@
+id: vuln-sns-search-xss-reflected
+
+info:
+  name: vuln-sns Search Reflected XSS
+  author: devin
+  severity: medium
+  description: Reflected XSS vulnerability in search endpoint via tag parameter
+  classification:
+    cvss-metrics: CVSS:3.1/AV:N/AC:L/PR:N/UI:R/S:C/C:L/I:L/A:N
+    cvss-score: 6.1
+    cwe-id: CWE-79
+  metadata:
+    max-request: 3
+  tags: xss,reflected,search,vuln-sns
+
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/api/search?tag=<script>alert('XSS')</script>"
+    
+    matchers-condition: and
+    matchers:
+      - type: word
+        words:
+          - "<script>alert('XSS')</script>"
+        part: body
+      
+      - type: status
+        status:
+          - 200
+
+  - method: GET
+    path:
+      - "{{BaseURL}}/api/search?tag=\"><img src=x onerror=alert('XSS')>"
+    
+    matchers-condition: and
+    matchers:
+      - type: word
+        words:
+          - "onerror=alert"
+        part: body
+      
+      - type: status
+        status:
+          - 200
+
+  - method: GET
+    path:
+      - "{{BaseURL}}/api/search?tag=javascript:alert('XSS')"
+    
+    matchers-condition: and
+    matchers:
+      - type: word
+        words:
+          - "javascript:alert"
+        part: body
+      
+      - type: status
+        status:
+          - 200

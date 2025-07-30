@@ -1,0 +1,117 @@
+id: vuln-sns-posts-parameter-tampering
+
+info:
+  name: vuln-sns Posts Parameter Tampering
+  author: devin
+  severity: medium
+  description: Parameter tampering in posts endpoints via ID manipulation
+  classification:
+    cvss-metrics: CVSS:3.1/AV:N/AC:L/PR:L/UI:N/S:U/C:L/I:L/A:N
+    cvss-score: 5.4
+    cwe-id: CWE-472
+  metadata:
+    max-request: 6
+  tags: parameter-tampering,posts,vuln-sns,authenticated
+
+http:
+  - method: PUT
+    path:
+      - "{{BaseURL}}/api/posts/-1"
+    
+    headers:
+      Content-Type: application/json
+      Authorization: "Bearer alice_token"
+    
+    body: |
+      {
+        "content": "negative id test"
+      }
+    
+    matchers-condition: or
+    matchers:
+      - type: status
+        status:
+          - 200
+          - 400
+          - 500
+
+  - method: DELETE
+    path:
+      - "{{BaseURL}}/api/posts/999999999"
+    
+    headers:
+      Authorization: "Bearer alice_token"
+    
+    matchers-condition: or
+    matchers:
+      - type: status
+        status:
+          - 200
+          - 404
+          - 500
+
+  - method: POST
+    path:
+      - "{{BaseURL}}/api/posts/abc/like"
+    
+    headers:
+      Authorization: "Bearer alice_token"
+    
+    matchers-condition: or
+    matchers:
+      - type: status
+        status:
+          - 200
+          - 400
+          - 404
+
+  - method: PUT
+    path:
+      - "{{BaseURL}}/api/posts/0"
+    
+    headers:
+      Content-Type: application/json
+      Authorization: "Bearer alice_token"
+    
+    body: |
+      {
+        "content": "zero id test"
+      }
+    
+    matchers-condition: or
+    matchers:
+      - type: status
+        status:
+          - 200
+          - 400
+          - 404
+
+  - method: DELETE
+    path:
+      - "{{BaseURL}}/api/posts/%2e%2e%2f%2e%2e%2f1"
+    
+    headers:
+      Authorization: "Bearer alice_token"
+    
+    matchers-condition: or
+    matchers:
+      - type: status
+        status:
+          - 200
+          - 400
+          - 404
+
+  - method: POST
+    path:
+      - "{{BaseURL}}/api/posts/1%00/like"
+    
+    headers:
+      Authorization: "Bearer alice_token"
+    
+    matchers-condition: or
+    matchers:
+      - type: status
+        status:
+          - 200
+          - 400
+          - 404

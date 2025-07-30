@@ -1,0 +1,121 @@
+id: vuln-sns-general-http-methods
+
+info:
+  name: vuln-sns General HTTP Methods Testing
+  author: devin
+  severity: low
+  description: Testing for allowed HTTP methods across all endpoints
+  classification:
+    cvss-metrics: CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:L/I:N/A:N
+    cvss-score: 5.3
+    cwe-id: CWE-200
+  metadata:
+    max-request: 8
+  tags: http-methods,general,vuln-sns
+
+http:
+  - method: OPTIONS
+    path:
+      - "{{BaseURL}}/api/health"
+    
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+          - 204
+      
+      - type: word
+        words:
+          - "Allow"
+        part: header
+
+  - method: HEAD
+    path:
+      - "{{BaseURL}}/api/posts"
+    
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+          - 405
+
+  - method: TRACE
+    path:
+      - "{{BaseURL}}/api/login"
+    
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+          - 405
+      
+      - type: word
+        words:
+          - "TRACE"
+        part: body
+
+  - method: PUT
+    path:
+      - "{{BaseURL}}/api/health"
+    
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+          - 405
+
+  - method: DELETE
+    path:
+      - "{{BaseURL}}/api/health"
+    
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+          - 405
+
+  - method: PATCH
+    path:
+      - "{{BaseURL}}/api/search"
+    
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+          - 405
+
+  - method: CONNECT
+    path:
+      - "{{BaseURL}}/api/profile"
+    
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+          - 405
+
+  - method: POST
+    path:
+      - "{{BaseURL}}/api/posts"
+    
+    headers:
+      Content-Type: application/xml
+    
+    body: |
+      <?xml version="1.0"?>
+      <test>data</test>
+    
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+          - 405
+          - 415

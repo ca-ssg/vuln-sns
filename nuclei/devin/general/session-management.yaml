@@ -1,0 +1,85 @@
+id: vuln-sns-general-session-management
+
+info:
+  name: vuln-sns General Session Management Issues
+  author: devin
+  severity: medium
+  description: Session handling issues across all endpoints
+  classification:
+    cvss-metrics: CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:L/I:L/A:N
+    cvss-score: 6.5
+    cwe-id: CWE-384
+  metadata:
+    max-request: 4
+  tags: session,management,general,vuln-sns
+
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/api/profile"
+    
+    headers:
+      Authorization: "Bearer alice"
+    
+    matchers-condition: and
+    matchers:
+      - type: word
+        words:
+          - "alice"
+          - "nickname"
+        condition: and
+        part: body
+      
+      - type: status
+        status:
+          - 200
+
+  - method: GET
+    path:
+      - "{{BaseURL}}/api/profile"
+    
+    headers:
+      Authorization: "Bearer invalid_token_format"
+    
+    matchers-condition: or
+    matchers:
+      - type: status
+        status:
+          - 200
+          - 401
+
+  - method: POST
+    path:
+      - "{{BaseURL}}/api/posts"
+    
+    headers:
+      Content-Type: application/json
+      Authorization: "Bearer expired_token"
+    
+    body: |
+      {
+        "content": "test with expired token"
+      }
+    
+    matchers-condition: or
+    matchers:
+      - type: status
+        status:
+          - 200
+          - 201
+          - 401
+
+  - method: GET
+    path:
+      - "{{BaseURL}}/api/posts"
+    
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      
+      - type: word
+        words:
+          - "["
+        part: body

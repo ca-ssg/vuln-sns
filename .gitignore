@@ -13,3 +13,7 @@
 
 # claude
 .claude/
+
+# Nuclei test results
+nuclei-results.txt
+*-results.txt

