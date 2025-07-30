@@ -50,7 +50,7 @@
 
 ### 全テンプレートの検証
 ```bash
-nuclei -validate -t ./nuclei/claude/
+nuclei -validate -t ./nuclei/devin/
 ```
 
 ### 実行中のアプリケーションに対するテスト
@@ -59,16 +59,16 @@ nuclei -validate -t ./nuclei/claude/
 docker-compose up -d
 
 # テンプレートを実行
-nuclei -t ./nuclei/claude/ -u http://localhost:9090 -o results.txt
+nuclei -t ./nuclei/devin/ -u http://localhost:9090 -o results.txt
 ```
 
 ### 特定カテゴリのテスト
 ```bash
 # SQLインジェクションテストのみ
-nuclei -t ./nuclei/claude/*/sql-injection*.yaml -u http://localhost:9090
+nuclei -t ./nuclei/devin/*/sql-injection*.yaml -u http://localhost:9090
 
 # 認可回避テストのみ  
-nuclei -t ./nuclei/claude/*/authorization-bypass.yaml -u http://localhost:9090
+nuclei -t ./nuclei/devin/*/authorization-bypass.yaml -u http://localhost:9090
 ```
 
 ## テスト結果
