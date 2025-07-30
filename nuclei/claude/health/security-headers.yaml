@@ -1,0 +1,43 @@
+id: vuln-sns-health-security-headers
+
+info:
+  name: vuln-sns Health Endpoint Missing Security Headers
+  author: devin
+  severity: medium
+  description: Health endpoint missing critical security headers
+  classification:
+    cvss-metrics: CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:L/A:N
+    cvss-score: 5.3
+    cwe-id: CWE-693
+  metadata:
+    max-request: 1
+  tags: headers,security,health,vuln-sns
+
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/api/health"
+    
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      
+      - type: dsl
+        dsl:
+          - '!contains(tolower(header), "x-frame-options")'
+          - '!contains(tolower(header), "x-content-type-options")'
+          - '!contains(tolower(header), "x-xss-protection")'
+          - '!contains(tolower(header), "strict-transport-security")'
+          - '!contains(tolower(header), "content-security-policy")'
+        condition: or
+
+    extractors:
+      - type: kval
+        kval:
+          - x_frame_options
+          - x_content_type_options
+          - x_xss_protection
+          - strict_transport_security
+          - content_security_policy

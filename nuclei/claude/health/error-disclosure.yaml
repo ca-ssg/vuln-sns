@@ -1,0 +1,64 @@
+id: vuln-sns-health-error-disclosure
+
+info:
+  name: vuln-sns Health Endpoint Information Disclosure
+  author: devin
+  severity: low
+  description: Health endpoint may disclose sensitive information in error responses
+  classification:
+    cvss-metrics: CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:L/I:N/A:N
+    cvss-score: 5.3
+    cwe-id: CWE-200
+  metadata:
+    max-request: 2
+  tags: disclosure,error,health,vuln-sns
+
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/api/health"
+    
+    headers:
+      Accept: "application/xml"
+    
+    matchers-condition: or
+    matchers:
+      - type: word
+        words:
+          - "stack trace"
+          - "error"
+          - "exception"
+          - "debug"
+          - "mysql"
+          - "database"
+          - "gin"
+          - "golang"
+        part: body
+        case-insensitive: true
+
+  - method: POST
+    path:
+      - "{{BaseURL}}/api/health"
+    
+    headers:
+      Content-Type: "application/json"
+    
+    body: |
+      {"invalid": "data"}
+    
+    matchers-condition: or
+    matchers:
+      - type: word
+        words:
+          - "Method Not Allowed"
+          - "405"
+          - "stack trace"
+          - "error"
+          - "gin"
+        part: body
+        case-insensitive: true
+      
+      - type: status
+        status:
+          - 405
+          - 500

