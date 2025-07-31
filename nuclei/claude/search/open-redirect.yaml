@@ -1,0 +1,55 @@
+id: vuln-sns-search-open-redirect
+info:
+  name: Vuln SNS Search - Open Redirect
+  author: claude
+  severity: medium
+  description: |
+    Tests for open redirect vulnerabilities in the search endpoint.
+  reference:
+    - https://owasp.org/www-community/attacks/Unvalidated_Redirects_and_Forwards_Cheat_Sheet
+  tags: vuln-sns,redirect,search
+
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/api/search?tag={{payload}}"
+      - "{{BaseURL}}/api/search?tag=test&redirect={{payload}}"
+      - "{{BaseURL}}/api/search?tag=test&url={{payload}}"
+      - "{{BaseURL}}/api/search?tag=test&next={{payload}}"
+      - "{{BaseURL}}/api/search?tag=test&return={{payload}}"
+
+    payloads:
+      payload:
+        - "http://evil.com"
+        - "https://evil.com"
+        - "//evil.com"
+        - "///evil.com"
+        - "\\\\evil.com"
+        - "http://google.com"
+        - "javascript:alert(1)"
+        - "data:text/html,<script>alert(1)</script>"
+        - "%2F%2Fevil.com"
+        - "http%3A%2F%2Fevil.com"
+
+    stop-at-first-match: true
+    matchers-condition: or
+    matchers:
+      - type: word
+        words:
+          - "Location: http://evil.com"
+          - "Location: https://evil.com"
+          - "Location: //evil.com"
+        condition: or
+        part: header
+
+      - type: regex
+        regex:
+          - 'Location:\s*(https?:)?//(?!{{Hostname}})'
+        part: header
+
+      - type: word
+        words:
+          - 'window.location="http://evil.com"'
+          - 'window.location.href="http://evil.com"'
+        condition: or
+        part: body

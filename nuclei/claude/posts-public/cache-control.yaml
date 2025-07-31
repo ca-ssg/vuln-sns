@@ -1,0 +1,72 @@
+id: vuln-sns-posts-public-cache-control
+info:
+  name: Vuln SNS Posts Public - Missing Cache Control Headers
+  author: claude
+  severity: low
+  description: |
+    Tests for missing or inadequate cache control headers on the public posts endpoint.
+    Without proper cache controls, sensitive data might be cached by browsers or proxies.
+  reference:
+    - https://owasp.org/www-project-secure-headers/#cache-control
+  tags: vuln-sns,cache,headers,posts
+
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/api/posts"
+
+    matchers-condition: or
+    matchers:
+      - type: word
+        words:
+          - "Cache-Control"
+        part: header
+        negative: true
+        name: missing-cache-control
+
+      - type: word
+        words:
+          - "no-store"
+          - "no-cache"
+          - "private"
+        part: header
+        negative: true
+        name: inadequate-cache-control
+
+      - type: regex
+        regex:
+          - 'Cache-Control:.*public'
+          - 'Cache-Control:.*max-age=[1-9]'
+        condition: or
+        part: header
+        name: unsafe-cache-settings
+
+      - type: word
+        words:
+          - "Pragma"
+        part: header
+        negative: true
+        name: missing-pragma
+
+    extractors:
+      - type: kval
+        kval:
+          - "cache_control"
+        part: header
+
+  - method: GET
+    path:
+      - "{{BaseURL}}/api/posts"
+
+    headers:
+      Authorization: "Bearer alice_token"
+
+    matchers:
+      - type: word
+        words:
+          - "private"
+          - "no-store"
+        condition: or
+        part: header
+        negative: true
+        name: authenticated-cache-issue

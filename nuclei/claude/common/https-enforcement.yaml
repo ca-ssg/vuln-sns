@@ -1,0 +1,29 @@
+id: vuln-sns-common-https-enforcement
+info:
+  name: Vuln SNS - Missing HTTPS Enforcement
+  author: claude
+  severity: medium
+  description: |
+    Tests for missing HTTPS enforcement headers.
+  reference:
+    - https://owasp.org/www-project-secure-headers/#strict-transport-security
+  tags: vuln-sns,https,headers,common
+
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/api/health"
+      - "{{BaseURL}}/api/posts"
+
+    matchers:
+      - type: word
+        words:
+          - "Strict-Transport-Security"
+        part: header
+        negative: true
+
+    extractors:
+      - type: kval
+        kval:
+          - "strict_transport_security"
+        part: header

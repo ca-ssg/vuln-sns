@@ -1,0 +1,93 @@
+id: vuln-sns-login-session-fixation
+info:
+  name: Vuln SNS Login - Session Fixation
+  author: claude
+  severity: high
+  description: |
+    Tests for session fixation vulnerabilities in the login process.
+    The application may accept externally provided session identifiers,
+    allowing attackers to hijack user sessions.
+  reference:
+    - https://owasp.org/www-community/attacks/Session_fixation
+  tags: vuln-sns,session,fixation,login
+
+http:
+  - method: POST
+    path:
+      - "{{BaseURL}}/api/login"
+
+    headers:
+      Content-Type: application/json
+      Cookie: "{{cookie}}"
+
+    body: |
+      {"user_id":"alice","password":"alice"}
+
+    payloads:
+      cookie:
+        - "session=fixedsession123"
+        - "PHPSESSID=fixedsession123"
+        - "JSESSIONID=fixedsession123"
+        - "token=fixed_token_123"
+
+    matchers-condition: or
+    matchers:
+      - type: word
+        words:
+          - "fixedsession123"
+          - "fixed_token_123"
+        condition: or
+        part: header
+
+      - type: regex
+        regex:
+          - 'Set-Cookie:.*fixedsession123'
+          - 'Set-Cookie:.*fixed_token_123'
+        condition: or
+        part: header
+
+    extractors:
+      - type: regex
+        name: session_cookie
+        regex:
+          - 'Set-Cookie:\s*([^;]+)'
+        part: header
+
+  - method: POST
+    path:
+      - "{{BaseURL}}/api/login?session={{session}}"
+
+    headers:
+      Content-Type: application/json
+
+    body: |
+      {"user_id":"alice","password":"alice"}
+
+    payloads:
+      session:
+        - "fixedsession456"
+        - "attacker_session"
+
+    matchers:
+      - type: word
+        words:
+          - "fixedsession456"
+          - "attacker_session"
+        condition: or
+        part: body
+
+  - method: POST
+    path:
+      - "{{BaseURL}}/api/login"
+
+    headers:
+      Content-Type: application/json
+
+    body: |
+      {"user_id":"alice","password":"alice","session":"malicious_session"}
+
+    matchers:
+      - type: word
+        words:
+          - "malicious_session"
+        part: body

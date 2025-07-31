@@ -1,0 +1,52 @@
+id: vuln-sns-posts-parameter-tampering
+info:
+  name: Vuln SNS Posts - Parameter Tampering
+  author: claude
+  severity: medium
+  description: |
+    Tests for parameter tampering vulnerabilities in posts creation.
+  reference:
+    - https://owasp.org/www-community/attacks/Web_Parameter_Tampering
+  tags: vuln-sns,tampering,posts
+
+http:
+  - raw:
+      - |
+        POST /api/login HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/json
+        
+        {"user_id":"alice","password":"alice"}
+        
+      - |
+        POST /api/posts HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/json
+        Authorization: Bearer {{token}}
+        
+        {"content":"Test post","userId":"bob","id":999,"isAdmin":true}
+
+    extractors:
+      - type: regex
+        name: token
+        regex:
+          - '"token":\s*"([^"]+)"'
+        part: body_1
+        internal: true
+
+    matchers-condition: or
+    matchers:
+      - type: word
+        words:
+          - '"userId":"bob"'
+        part: body_2
+
+      - type: word
+        words:
+          - '"id":999'
+        part: body_2
+
+      - type: word
+        words:
+          - '"isAdmin":true'
+        part: body_2

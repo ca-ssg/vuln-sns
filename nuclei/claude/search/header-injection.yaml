@@ -1,0 +1,41 @@
+id: vuln-sns-search-header-injection
+info:
+  name: Vuln SNS Search - HTTP Response Header Injection
+  author: claude
+  severity: medium
+  description: |
+    Tests for HTTP response header injection vulnerabilities in the search endpoint.
+  reference:
+    - https://owasp.org/www-community/attacks/HTTP_Response_Splitting
+  tags: vuln-sns,header-injection,search,crlf
+
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/api/search?tag={{payload}}"
+
+    payloads:
+      payload:
+        - "test\r\nX-Injected: header"
+        - "test\nX-Injected: header"
+        - "test\r\n\r\n<script>alert(1)</script>"
+        - "test%0d%0aX-Injected:%20header"
+        - "test%0aX-Injected:%20header"
+        - "test%0d%0aSet-Cookie:%20injected=value"
+
+    stop-at-first-match: true
+    matchers-condition: or
+    matchers:
+      - type: word
+        words:
+          - "X-Injected"
+          - "injected=value"
+        condition: or
+        part: header
+
+      - type: regex
+        regex:
+          - '(?m)^X-Injected:'
+          - '(?m)^Set-Cookie:.*injected'
+        condition: or
+        part: header

@@ -1,0 +1,53 @@
+id: vuln-sns-login-error-disclosure
+info:
+  name: Vuln SNS Login - User Enumeration via Error Messages
+  author: claude
+  severity: medium
+  description: |
+    Tests for user enumeration through different error messages.
+    The application may reveal whether a username exists based on
+    different error responses.
+  reference:
+    - https://owasp.org/www-project-web-security-testing-guide/latest/4-Web_Application_Security_Testing/03-Identity_Management_Testing/04-Testing_for_Account_Enumeration_and_Guessable_User_Account
+  tags: vuln-sns,enumeration,login,disclosure
+
+http:
+  - raw:
+      - |
+        POST /api/login HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/json
+
+        {"user_id":"alice","password":"wrongpassword"}
+
+      - |
+        POST /api/login HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/json
+
+        {"user_id":"nonexistentuser12345","password":"wrongpassword"}
+
+    matchers-condition: and
+    matchers:
+      - type: dsl
+        dsl:
+          - 'body_1 != body_2'
+        condition: and
+        name: different-responses
+
+      - type: word
+        words:
+          - "user not found"
+          - "invalid username"
+          - "account does not exist"
+          - "incorrect password"
+          - "invalid credentials"
+        condition: or
+        part: body
+
+    extractors:
+      - type: regex
+        name: error_messages
+        regex:
+          - '"error":\s*"([^"]+)"'
+        part: body

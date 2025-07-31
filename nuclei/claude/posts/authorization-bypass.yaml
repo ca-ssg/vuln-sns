@@ -1,0 +1,99 @@
+id: vuln-sns-posts-authorization-bypass
+info:
+  name: Vuln SNS Posts - Authorization Bypass
+  author: claude
+  severity: high
+  description: |
+    Tests for authorization bypass vulnerabilities in posts creation.
+    Checks if authentication can be bypassed or if weak tokens are accepted.
+  reference:
+    - https://owasp.org/www-project-web-security-testing-guide/latest/4-Web_Application_Security_Testing/05-Authorization_Testing/02-Testing_for_Bypassing_Authorization_Schema
+  tags: vuln-sns,authorization,bypass,posts
+
+variables:
+  post_content: "Test post for authorization check {{rand_base(6)}}"
+
+http:
+  - name: login-alice
+    method: POST
+    path:
+      - "{{BaseURL}}/api/login"
+    headers:
+      Content-Type: application/json
+    body: |
+      {"user_id":"alice","password":"alice"}
+    extractors:
+      - type: json
+        name: alice_token
+        json:
+          - '.token'
+        internal: true
+
+  - name: create-post-without-auth
+    method: POST
+    path:
+      - "{{BaseURL}}/api/posts"
+    headers:
+      Content-Type: application/json
+    body: |
+      {"content":"{{post_content}}"}
+    matchers:
+      - type: word
+        words:
+          - '"id":'
+          - '"content":'
+        condition: and
+        part: body
+        name: no-auth-required
+
+  - name: create-post-invalid-token
+    method: POST
+    path:
+      - "{{BaseURL}}/api/posts"
+    headers:
+      Content-Type: application/json
+      Authorization: "{{auth_header}}"
+    body: |
+      {"content":"{{post_content}}"}
+    payloads:
+      auth_header:
+        - "Bearer invalid_token"
+        - "Bearer "
+        - "Bearer null"
+        - "Bearer undefined"
+        - "Bearer admin_token"
+        - "Bearer root_token"
+        - "invalid_token"
+        - "Basic YWxpY2U6YWxpY2U="
+    matchers:
+      - type: word
+        words:
+          - '"id":'
+          - '"content":'
+        condition: and
+        part: body
+        name: weak-token-accepted
+
+  - name: create-post-predictable-token
+    method: POST
+    path:
+      - "{{BaseURL}}/api/posts"
+    headers:
+      Content-Type: application/json
+      Authorization: "Bearer {{user}}_token"
+    body: |
+      {"content":"{{post_content}}"}
+    payloads:
+      user:
+        - "admin"
+        - "root"
+        - "test"
+        - "user"
+    matchers:
+      - type: word
+        words:
+          - '"id":'
+          - '"userId":'
+        condition: and
+        part: body
+        name: predictable-token-format
