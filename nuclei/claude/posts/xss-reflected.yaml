@@ -15,15 +15,15 @@ http:
         POST /api/login HTTP/1.1
         Host: {{Hostname}}
         Content-Type: application/json
-        
+
         {"user_id":"alice","password":"alice"}
-        
+
       - |
         POST /api/posts HTTP/1.1
         Host: {{Hostname}}
         Content-Type: application/json
         Authorization: Bearer {{token}}
-        
+
         {"content":"{{payload}}"}
 
     payloads:
@@ -42,5 +42,7 @@ http:
     matchers:
       - type: word
         words:
-          - "{{payload}}"
+          - "<script>alert('XSS')</script>"
+          - "<img src=x onerror=alert('XSS')>"
+        condition: or
         part: body_2

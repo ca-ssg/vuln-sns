@@ -25,25 +25,24 @@ http:
     matchers:
       - type: word
         words:
-          - "stack trace"
-          - "traceback"
-          - "exception"
-          - "error occurred"
-          - "fatal error"
-          - "panic:"
-          - "runtime error"
-          - "debug mode"
-          - "development mode"
+          - "stack trace:"
+          - "Traceback (most recent call last)"
+          - "Exception in thread"
+          - "Unhandled exception:"
+          - "Fatal error:"
+          - "panic: runtime error"
+          - "DEBUG = True"
+          - "DEVELOPMENT_MODE = true"
         condition: or
         part: body
 
       - type: word
         words:
-          - "mysql"
-          - "database connection"
-          - "connection refused"
-          - "connection timeout"
-          - "driver"
+          - "mysql.connector.errors"
+          - "Error establishing database connection"
+          - "dial tcp.*: connection refused"
+          - "Error 1045: Access denied for user"
+          - "Error 2003: Can't connect to MySQL server"
         condition: or
         part: body
 

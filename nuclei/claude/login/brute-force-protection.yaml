@@ -42,7 +42,7 @@ http:
     matchers:
       - type: dsl
         dsl:
-          - 'status_code_10 == 200 || status_code_10 == 401'
+          - 'status_code == 200 || status_code == 401'
         condition: and
         name: no-rate-limiting
 
