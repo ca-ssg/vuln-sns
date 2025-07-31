@@ -12,24 +12,21 @@ info:
   tags: vuln-sns,enumeration,login,disclosure
 
 http:
-  - method: POST
-    path:
-      - "{{BaseURL}}/api/login"
+  - raw:
+      - |
+        POST /api/login HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/json
 
-    headers:
-      Content-Type: application/json
+        {"user_id":"alice","password":"wrongpassword"}
 
-    body: |
-      {"user_id":"{{user}}","password":"wrongpassword"}
+      - |
+        POST /api/login HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/json
 
-    payloads:
-      user:
-        - "alice"
-        - "nonexistentuser12345"
-        - "admin"
-        - "root"
+        {"user_id":"nonexistentuser12345","password":"wrongpassword"}
 
-    req-condition: true
     matchers-condition: and
     matchers:
       - type: dsl
@@ -50,30 +47,7 @@ http:
 
     extractors:
       - type: regex
-        name: error_message
+        name: error_messages
         regex:
           - '"error":\s*"([^"]+)"'
         part: body
-
-  - method: POST
-    path:
-      - "{{BaseURL}}/api/login"
-
-    headers:
-      Content-Type: application/json
-
-    body: |
-      {"user_id":"{{user}}","password":""}
-
-    payloads:
-      user:
-        - "alice"
-        - "nonexistentuser12345"
-
-    req-condition: true
-    matchers:
-      - type: dsl
-        dsl:
-          - 'body_1 != body_2 || duration_1 != duration_2'
-        condition: and
-        name: timing-difference

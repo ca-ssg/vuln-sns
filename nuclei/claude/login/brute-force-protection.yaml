@@ -38,13 +38,14 @@ http:
 
     req-condition: true
     stop-at-first-match: true
-    matchers-condition: or
+    matchers-condition: and
     matchers:
-      - type: dsl
-        dsl:
-          - 'status_code == 200 || status_code == 401'
-        condition: and
-        name: no-rate-limiting
+      - type: status
+        status:
+          - 200
+          - 401
+        condition: or
+        name: normal-response-status
 
       - type: word
         words:
@@ -52,10 +53,11 @@ http:
           - "rate limit"
           - "temporarily blocked"
           - "account locked"
+          - "429"
         condition: or
         part: body
         negative: true
-        name: no-protection-message
+        name: no-protection-detected
 
     extractors:
       - type: regex

@@ -82,9 +82,12 @@ http:
         internal: true
 
     matchers:
-      - type: dsl
-        dsl:
-          - 'contains(body_3, payload + "_" + rand_str)'
-        condition: and
+      - type: word
+        words:
+          - "<script>alert('XSS')</script>"
+          - "<img src=x onerror=alert('XSS')>"
+          - "<svg onload=alert('XSS')>"
+          - "<iframe src='javascript:alert(\"XSS\")"
+        condition: or
         part: body_3
         name: xss-payload-reflected
