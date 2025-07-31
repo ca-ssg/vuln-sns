@@ -73,6 +73,11 @@ http:
       - type: word
         words:
           - "uid="
-          - "gid="
-        condition: and
         part: body_2
+        name: command-injection-detected
+
+      - type: word
+        words:
+          - "gid="
+        part: body_2
+        name: additional-system-info

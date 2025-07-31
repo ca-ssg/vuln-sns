@@ -39,7 +39,7 @@ http:
     body: |
       {
         "file_id": "malicious_{{rand_str}}.php",
-        "image_data": "PD9waHAgZWNobyAnTWFsaWNpb3VzIFBIUCc7ID8+"
+        "image_data": "{{base64('<?php echo \"Malicious PHP executed\"; ?>')}}"
       }
     matchers-condition: or
     matchers:
@@ -68,7 +68,7 @@ http:
     body: |
       {
         "file_id": "large_{{rand_str}}.jpg",
-        "image_data": "{{repeat('A', 10485760)}}"
+        "image_data": "{{base64(repeat('A', 1048576))}}"
       }
     matchers:
       - type: status
@@ -87,7 +87,7 @@ http:
     body: |
       {
         "file_id": "malware_{{rand_str}}.exe",
-        "image_data": "TVqQAAMAAAAEAAAA//8AALgAAAAAAAAAQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
+        "image_data": "{{base64('MZ\\x90\\x00\\x03\\x00\\x00\\x00\\x04\\x00\\x00\\x00\\xff\\xff\\x00\\x00\\xb8\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x40\\x00\\x00\\x00')}}"
       }
     matchers:
       - type: word
@@ -106,7 +106,7 @@ http:
     body: |
       {
         "file_id": "polyglot_{{rand_str}}.jpg",
-        "image_data": "/9j/4AAQSkZJRgABAQEAYABgAAD/2wBDAAP/7QAsUGhvdG9zaG9wPD94cGhwPz8="
+        "image_data": "{{base64('\\xff\\xd8\\xff\\xe0\\x00\\x10JFIF\\x00\\x01\\x01\\x01\\x00H\\x00H\\x00\\x00<?php echo \"polyglot\"; ?>')}}"
       }
     matchers:
       - type: word

@@ -82,11 +82,9 @@ http:
         internal: true
 
     matchers:
-      - type: regex
-        regex:
-          - "<script>alert\\('XSS'\\)</script>_[a-zA-Z0-9]{6}"
-          - "<img src=x onerror=alert\\('XSS'\\)>_[a-zA-Z0-9]{6}"
-          - "<svg onload=alert\\('XSS'\\)>_[a-zA-Z0-9]{6}"
-          - "<iframe src='javascript:alert\\(\"XSS\"\\)'_[a-zA-Z0-9]{6}"
-        condition: or
+      - type: dsl
+        dsl:
+          - 'contains(body_3, payload + "_" + rand_str)'
+        condition: and
         part: body_3
+        name: xss-payload-reflected
