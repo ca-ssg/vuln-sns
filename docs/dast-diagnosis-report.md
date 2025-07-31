@@ -95,6 +95,19 @@ vuln-sns アプリケーションには複数の重要な脆弱性が存在す�
 
 本診断により検出された脆弱性は、実際のWebアプリケーションで発生しうる典型的なセキュリティ問題であり、セキュリティ学習の観点から非常に有用な教材となっています。
 
+## CI/CD 注意事項
+本ドキュメントのPR（#33）において、`claude-review` GitHub Actionが以下のエラーで失敗していますが、これはリポジトリ設定の問題であり、ドキュメント内容とは無関係です：
+
+```
+Failed to setup GitHub token: Error: User does not have write access on this repository.
+App token exchange failed: 401 Unauthorized - User does not have write access on this repository
+```
+
+**解決方法（リポジトリ管理者向け）**：
+1. `secrets.CLAUDE_CODE_OAUTH_TOKEN` の権限設定を確認
+2. または `.github/workflows/claude-code-review.yml` で `github_token` パラメータを使用
+3. 一時的にワークフローを無効化することも可能
+
 ## 参考資料
 - [OWASP Top 10](https://owasp.org/www-project-top-ten/)
 - [CWE (Common Weakness Enumeration)](https://cwe.mitre.org/)
