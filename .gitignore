@@ -20,3 +20,5 @@ nuclei-results.txt
 
 # claude
 .claude/
+
+.serena/
